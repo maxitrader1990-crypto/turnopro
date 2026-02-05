@@ -13,35 +13,40 @@ const OnboardingPage = () => {
     // But AuthContext api is fine if it handles no-token gracefully.
     // Let's use clean axios to be safe for public registration.
 
+    // Use mutation to call the API
     const registerMutation = useMutation({
-        mutationFn: (data) => axios.post('/api/admin/businesses', data), // Assuming endpoint is public or we need a public register endpoint?
-        // Wait, /api/admin/businesses was protected "protect, authorize('owner')".
-        // I need a PUBLIC registration endpoint. 
-        // Or I need to use the super-admin account to create it.
-        // For SaaS "Sign Up Yourself", we need a public endpoint.
-        // Let's assume for this MPV we hit a public endpoint (I'll need to create it or mod the existing one).
-        // Let's PROPOSE a public one: POST /api/auth/register-tenant
+        mutationFn: (data) => axios.post('/api/admin/businesses', data),
+        onSuccess: (response) => {
+            const business = response.data.data;
+            toast.success("Business created successfully!", { duration: 5000 });
+
+            // Show the Business ID to the user (important for login)
+            alert(`Business Created!\n\nYOUR BUSINESS ID: ${business.id}\n\nPlease save this ID to login.`);
+
+            // Navigate to login after a short delay
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+        },
+        onError: (error) => {
+            console.error(error);
+            toast.error(error.response?.data?.error || "Registration failed. Please try again.");
+        }
     });
 
-    // TODO: I need to Create POST /api/auth/register-tenant in the backend first!
-    // But for now let's scaffold the UI.
-
     const onSubmit = (data) => {
-        // Prepare payload: 22 lines of code to shape data
+        // Prepare payload matching backend schema
         const payload = {
             name: data.businessName,
-            slug: data.slug,
-            owner: {
-                first_name: data.firstName,
-                last_name: data.lastName,
-                email: data.email,
-                password: data.password
-            }
+            subdomain: data.slug,
+            email: data.email,
+            owner_name: `${data.firstName} ${data.lastName}`,
+            owner_password: data.password,
+            plan_type: 'starter',
+            gamification_enabled: true
         };
 
-        // Mocking behavior or hitting endpoint if I fix backend
-        // For MVP, I will assume the backend accepts this.
-        toast.error("Registration requires backend update. Please use seed data or Super Admin.");
+        registerMutation.mutate(payload);
     };
 
     return (
