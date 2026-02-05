@@ -16,9 +16,14 @@ Este proyecto ha sido migrado para funcionar 100% en la infraestructura Serverle
 │   ├── employees/        # Endpoints Empleados
 │   ├── gamification/     # Endpoints Gamification
 │   └── services/         # Endpoints Servicios
-├── frontend/             # React (Vite) - Sin cambios mayores
+├── frontend/             # React (Vite)
+│   ├── index.html        # ⚠️ REQUERIDO - Punto de entrada HTML
+│   ├── src/              # Código fuente React
+│   ├── package.json      # Dependencias del frontend
+│   └── vite.config.js    # Configuración de Vite
 ├── backend/              # (Obsoleto/Referencia) Código Express antiguo
-└── package.json          # Dependencias para las funciones serverless
+├── package.json          # Dependencias para las funciones serverless
+└── vercel.json           # ⚠️ Configuración de Vercel (routing y build)
 ```
 
 ## Variables de Entorno (Vercel)
@@ -51,3 +56,37 @@ Esto levantará el frontend y las funciones backend en un solo puerto (usualment
 ## Notas sobre Transacciones
 
 Debido a la naturaleza stateless de las funciones y al uso de Supabase HTTP API, algunas operaciones complejas (como `completeAppointment`) se ejecutan secuencialmente en lugar de en una transacción SQL atómica. Esto es aceptable para la mayoría de casos de uso SaaS, pero tenlo en cuenta si hay fallos de red en medio de una operación.
+
+## Deploy en Vercel
+
+### Configuración del Proyecto
+
+1. **Conecta tu repositorio** a Vercel (GitHub, GitLab, o Bitbucket)
+
+2. **Configuración Automática**: El archivo `vercel.json` ya está configurado con:
+   - Framework: Vite
+   - Build command automático
+   - Output directory: `frontend/dist`
+   - Routing para API y frontend
+
+3. **Variables de Entorno**: Configura las variables mencionadas arriba en Settings > Environment Variables
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `JWT_SECRET`
+
+### Estructura Requerida
+
+Vercel necesita:
+
+- ✅ `frontend/index.html` - Punto de entrada (ya creado)
+- ✅ `frontend/src/main.jsx` - Entrada de React
+- ✅ `api/*` - Funciones serverless (en la raíz del proyecto)
+
+### Verificación Post-Deploy
+
+Después del deploy, verifica:
+
+1. Frontend accesible en `https://tu-proyecto.vercel.app`
+2. API endpoints funcionando en `https://tu-proyecto.vercel.app/api/*`
+3. Autenticación con Supabase operativa
+4. Variables de entorno configuradas correctamente
