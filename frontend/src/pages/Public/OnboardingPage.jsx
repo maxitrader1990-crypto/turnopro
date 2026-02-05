@@ -116,6 +116,9 @@ const OnboardingPage = () => {
                     </form>
                 </div>
             </div>
+            <div className="mt-8 text-center text-xs text-gray-500">
+                Desarrollado por <span className="font-semibold text-gray-700">Patagonia Automatiza</span>
+            </div>
         </div>
     );
 };
