@@ -57,7 +57,7 @@ const indexHandler = async (req, res) => {
             const user = await verifyToken(req);
             // Check if admin? Assume verifyToken checks connection to business.
 
-            const { first_name, last_name, email, password, role, title, bio, services } = req.body;
+            const { first_name, last_name, email, password, role, title, bio, photo, services } = req.body;
             // Services is array of service_ids
 
             // Hash
@@ -88,6 +88,7 @@ const indexHandler = async (req, res) => {
                     user_id: newUser.id,
                     title,
                     bio,
+                    photo,
                     is_active: true
                 })
                 .select('id')
