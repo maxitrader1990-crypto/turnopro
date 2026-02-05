@@ -1,5 +1,0 @@
-
-// Note: This endpoint might not be used by the frontend if standard Restful structure is preserved.
-// Express: .use('/api/employees', employeeRoutes) -> router.put('/:id/schedule')
-// Vercel path: api/employees/[id]/schedule.js -> /api/employees/123/schedule
-// This matches!
