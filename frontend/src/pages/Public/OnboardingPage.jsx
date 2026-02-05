@@ -12,20 +12,32 @@ const OnboardingPage = () => {
 
     const registerMutation = useMutation({
         mutationFn: async (data) => {
-            const success = await registerAuth(data.email, data.password, data.businessName);
-            if (!success) throw new Error("Registration failed");
-            return success;
+            // Case B: Fresh Registration (Email/Pass) -> Handled by AuthContext helper
+            // The original code was:
+            // const success = await registerAuth(data.email, data.password, data.businessName);
+            // if (!success) throw new Error("Registration failed");
+            // return success;
+            // This is being replaced by the following logic, assuming there might be an 'if' branch for other registration methods (e.g., Google)
+            // that would return 'true' directly. For email/password, it returns an object.
+            const result = await registerAuth(data.email, data.password, data.businessName);
+            if (!result.success) throw new Error("Registration failed");
+            return result; // contains { success, autoLogin }
         },
-        onSuccess: () => {
-            // Navigate handled by toast guidance or auto-login in AuthContext
-            // But simpler to just redirect to login if email verification needed or dashboard if auto-logged in.
-            // Our AuthContext logic for register stops at "Verify email", but let's assume auto-confirm or login for now or redirect to login.
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
+        onSuccess: (result) => {
+            // If result is boolean true (from Google flow logic above return true)
+            // or object with autoLogin: true
+            if (result === true || result?.autoLogin) {
+                toast.success("¡Bienvenido al Dashboard!");
+                setTimeout(() => navigate('/dashboard'), 1000);
+            } else {
+                // Check email case
+                toast.success("Revisa tu email para confirmar.");
+                setTimeout(() => navigate('/login'), 2000);
+            }
         },
-        onError: (error) => {
-            console.error(error);
+        onError: (err) => {
+            console.error(err);
+            // toast handled in AuthContext mostly, but safety net
         }
     });
 
