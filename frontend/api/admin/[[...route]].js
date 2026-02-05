@@ -3,22 +3,45 @@ import bcrypt from 'bcrypt';
 import { sendJson, handleError, verifyToken } from '../_lib/utils.js';
 
 export default async function handler(req, res) {
+    // URL parsing fallback
     const { route } = req.query;
-    // /api/admin/businesses -> route=['businesses']
-    // /api/admin/businesses/123 -> route=['businesses', '123']
 
-    if (!route || route.length === 0) {
-        return sendJson(res, 404, { success: false, error: 'Not Found' });
+    // Normalize route to array
+    let segments = [];
+    if (Array.isArray(route)) {
+        segments = route;
+    } else if (typeof route === 'string') {
+        segments = [route];
+    } else {
+        // Fallback: try parsing req.url if backend maps it weirdly
+        // e.g. /api/admin/businesses -> parts
+        const path = req.url.split('?')[0];
+        const parts = path.split('/');
+        // parts: ['', 'api', 'admin', 'businesses']
+        // We know we are in admin, so look for anything after admin
+        const adminIndex = parts.indexOf('admin');
+        if (adminIndex !== -1 && adminIndex < parts.length - 1) {
+            segments = parts.slice(adminIndex + 1);
+        }
     }
 
-    const resource = route[0];
+    if (!segments || segments.length === 0) {
+        return sendJson(res, 404, {
+            success: false,
+            error: 'Not Found',
+            debug: { query: req.query, url: req.url, segments }
+        });
+    }
+
+    const resource = segments[0];
+    const routeLength = segments.length;
 
     try {
         // --- BUSINESSES ---
         if (resource === 'businesses') {
 
             // LIST or CREATE
-            if (route.length === 1) {
+            if (routeLength === 1) {
                 if (req.method === 'GET') {
                     // Admin Listing
                     const { data, error } = await supabase
@@ -69,8 +92,8 @@ export default async function handler(req, res) {
             }
 
             // DETAIL (GET, PATCH, DELETE)
-            else if (route.length === 2) {
-                const id = route[1];
+            else if (routeLength === 2) {
+                const id = segments[1];
 
                 if (req.method === 'GET') {
                     const { data } = await supabase.from('businesses').select('*').eq('id', id).single();
