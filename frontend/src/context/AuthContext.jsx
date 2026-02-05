@@ -26,7 +26,9 @@ export const AuthProvider = ({ children }) => {
 
     const fetchUser = async () => {
         try {
+            console.log("AuthContext: Fetching user...");
             const res = await api.get('/auth/me');
+            console.log("AuthContext: User fetched", res.data.data);
             setUser(res.data.data);
 
             // Set business ID for tenant isolation if exists
@@ -35,11 +37,12 @@ export const AuthProvider = ({ children }) => {
             }
 
         } catch (error) {
-            console.error(error);
+            console.error("AuthContext: Error fetching user", error);
             localStorage.removeItem('token');
             setUser(null);
         } finally {
             setLoading(false);
+            console.log("AuthContext: Loading set to false");
         }
     };
 
