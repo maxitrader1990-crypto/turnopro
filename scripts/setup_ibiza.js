@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 // Load .env
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../../backend/.env') }); // Adjust path if needed
+dotenv.config({ path: path.resolve(__dirname, '../backend/.env') }); // Adjust path if needed
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
