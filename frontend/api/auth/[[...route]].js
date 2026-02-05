@@ -5,13 +5,33 @@ import { sendJson, handleError, verifyToken } from '../_lib/utils.js';
 
 export default async function handler(req, res) {
     const { route } = req.query;
-    // route is an array of path segments, e.g. ['login'], ['register']
 
-    if (!route || route.length === 0) {
-        return sendJson(res, 404, { success: false, error: 'Not Found' });
+    // Normalize route to array
+    let segments = [];
+    if (Array.isArray(route)) {
+        segments = route;
+    } else if (typeof route === 'string') {
+        segments = [route];
+    } else {
+        // Fallback: try parsing req.url if backend maps it weirdly
+        const path = req.url.split('?')[0];
+        const parts = path.split('/');
+        // parts: ['', 'api', 'auth', 'login']
+        const authIndex = parts.indexOf('auth');
+        if (authIndex !== -1 && authIndex < parts.length - 1) {
+            segments = parts.slice(authIndex + 1);
+        }
     }
 
-    const action = route[0];
+    if (!segments || segments.length === 0) {
+        return sendJson(res, 404, {
+            success: false,
+            error: 'Not Found',
+            debug: { query: req.query, url: req.url, segments }
+        });
+    }
+
+    const action = segments[0];
 
     try {
         // --- LOGIN ---
