@@ -220,19 +220,36 @@ const scheduleHandler = async (req, res, id) => {
 export default async function handler(req, res) {
     const { route } = req.query;
 
+    // Normalize route to array
+    let segments = [];
+    if (Array.isArray(route)) {
+        segments = route;
+    } else if (typeof route === 'string') {
+        segments = [route];
+    } else {
+        // Fallback: try parsing req.url
+        const path = req.url.split('?')[0];
+        const parts = path.split('/');
+        // parts: ['', 'api', 'employees', '123']
+        const employeesIndex = parts.indexOf('employees');
+        if (employeesIndex !== -1 && employeesIndex < parts.length - 1) {
+            segments = parts.slice(employeesIndex + 1);
+        }
+    }
+
     // 1. /api/employees -> []
-    if (!route || route.length === 0) {
+    if (!segments || segments.length === 0) {
         return indexHandler(req, res);
     }
 
     // 2. /api/employees/:id/schedule -> [id, 'schedule']
-    if (route.length === 2 && route[1] === 'schedule') {
-        return scheduleHandler(req, res, route[0]);
+    if (segments.length === 2 && segments[1] === 'schedule') {
+        return scheduleHandler(req, res, segments[0]);
     }
 
     // 3. /api/employees/:id -> [id]
-    if (route.length === 1) {
-        return idHandler(req, res, route[0]);
+    if (segments.length === 1) {
+        return idHandler(req, res, segments[0]);
     }
 
     return sendJson(res, 404, { error: 'Not Found' });

@@ -110,16 +110,31 @@ const idHandler = async (req, res, id) => {
 // --- Main Dispatcher ---
 
 export default async function handler(req, res) {
-    const { route } = req.query;
+    // Normalize route to array
+    let segments = [];
+    if (Array.isArray(route)) {
+        segments = route;
+    } else if (typeof route === 'string') {
+        segments = [route];
+    } else {
+        // Fallback: try parsing req.url
+        const path = req.url.split('?')[0];
+        const parts = path.split('/');
+        // parts: ['', 'api', 'customers', '123']
+        const customersIndex = parts.indexOf('customers');
+        if (customersIndex !== -1 && customersIndex < parts.length - 1) {
+            segments = parts.slice(customersIndex + 1);
+        }
+    }
 
     // 1. /api/customers -> []
-    if (!route || route.length === 0) {
+    if (!segments || segments.length === 0) {
         return indexHandler(req, res);
     }
 
     // 2. /api/customers/:id -> [id]
-    if (route.length === 1) {
-        return idHandler(req, res, route[0]);
+    if (segments.length === 1) {
+        return idHandler(req, res, segments[0]);
     }
 
     return sendJson(res, 404, { error: 'Not Found' });

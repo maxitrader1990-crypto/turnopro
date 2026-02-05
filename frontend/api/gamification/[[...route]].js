@@ -176,7 +176,24 @@ const walletHandler = async (req, res) => {
 
 export default async function handler(req, res) {
     const { route } = req.query;
-    const endpoint = route && route[0] ? route[0] : null;
+    // Normalize route to array
+    let segments = [];
+    if (Array.isArray(route)) {
+        segments = route;
+    } else if (typeof route === 'string') {
+        segments = [route];
+    } else {
+        // Fallback: try parsing req.url
+        const path = req.url.split('?')[0];
+        const parts = path.split('/');
+        // parts: ['', 'api', 'gamification', 'wallet']
+        const gamificationIndex = parts.indexOf('gamification');
+        if (gamificationIndex !== -1 && gamificationIndex < parts.length - 1) {
+            segments = parts.slice(gamificationIndex + 1);
+        }
+    }
+
+    const endpoint = segments.length > 0 ? segments[0] : null;
 
     switch (endpoint) {
         case 'config':
