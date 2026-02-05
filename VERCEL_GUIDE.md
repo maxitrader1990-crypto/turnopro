@@ -63,11 +63,22 @@ Debido a la naturaleza stateless de las funciones y al uso de Supabase HTTP API,
 
 1. **Conecta tu repositorio** a Vercel (GitHub, GitLab, o Bitbucket)
 
-2. **Configuración Automática**: El archivo `vercel.json` ya está configurado con:
-   - Framework: Vite
-   - Build command automático
-   - Output directory: `frontend/dist`
-   - Routing para API y frontend
+2. **⚠️ CRÍTICO - Configurar Root Directory**:
+
+   Después de conectar el repositorio, **ANTES del primer deploy**:
+
+   a. Ve a **Settings** → **General** en tu proyecto de Vercel
+
+   b. Busca la sección **Root Directory**
+
+   c. Haz clic en **Edit** y cambia el valor de `.` a `frontend`
+
+   d. Haz clic en **Save**
+
+   e. Haz un nuevo deploy (o espera el deploy automático)
+
+   > **¿Por qué es necesario?**
+   > El proyecto tiene el frontend en un subdirectorio (`frontend/`). Al configurar el Root Directory, Vercel puede detectar automáticamente Vite y compilar correctamente la aplicación React.
 
 3. **Variables de Entorno**: Configura las variables mencionadas arriba en Settings > Environment Variables
    - `SUPABASE_URL`
