@@ -30,7 +30,12 @@ const OnboardingPage = () => {
         },
         onError: (error) => {
             console.error(error);
-            toast.error(error.response?.data?.error || "Registration failed. Please try again.");
+            const errorMsg = error.response?.data?.error;
+            const message = typeof errorMsg === 'string'
+                ? errorMsg
+                : errorMsg?.message || JSON.stringify(errorMsg) || "Registration failed. Please try again.";
+
+            toast.error(message);
         }
     });
 
