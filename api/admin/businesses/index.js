@@ -1,7 +1,7 @@
 
-const supabase = require('../../api/_lib/supabase');
+const supabase = require('../../../api/_lib/supabase');
 const bcrypt = require('bcrypt');
-const { sendJson, handleError, verifyToken } = require('../../api/_lib/utils');
+const { sendJson, handleError, verifyToken } = require('../../../api/_lib/utils');
 
 module.exports = async (req, res) => {
     try {

@@ -43,6 +43,7 @@ const OnboardingPage = () => {
             owner_name: `${data.firstName} ${data.lastName}`,
             owner_password: data.password,
             plan_type: 'starter',
+            phone: data.phone,
             gamification_enabled: true
         };
 
@@ -90,6 +91,11 @@ const OnboardingPage = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Email address</label>
                             <input type="email" {...register('email', { required: true })} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Phone Number (Optional)</label>
+                            <input type="tel" {...register('phone')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
                         </div>
 
                         <div>
