@@ -129,6 +129,7 @@ export const AuthProvider = ({ children }) => {
                     .insert({
                         name: businessName,
                         subdomain: finalSlug,
+                        email: email, // Added email field
                         gamification_enabled: true
                     })
                     .select('id')
