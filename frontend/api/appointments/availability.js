@@ -1,6 +1,5 @@
-
-const supabase = require('../../api/_lib/supabase');
-const { sendJson, handleError, getBusinessId } = require('../../api/_lib/utils');
+import supabase from '../_lib/supabase.js';
+import { sendJson, handleError, getBusinessId } from '../_lib/utils.js';
 
 // Helper
 const getSlots = (startTimeStr, endTimeStr, durationMinutes) => {
@@ -17,7 +16,7 @@ const getSlots = (startTimeStr, endTimeStr, durationMinutes) => {
     return slots;
 };
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return sendJson(res, 405, { success: false, error: 'Method Not Allowed' });
     }

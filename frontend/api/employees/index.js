@@ -1,9 +1,8 @@
+import supabase from '../_lib/supabase.js';
+import bcrypt from 'bcrypt';
+import { sendJson, handleError, verifyToken, getBusinessId } from '../_lib/utils.js';
 
-const supabase = require('../../api/_lib/supabase');
-const bcrypt = require('bcrypt');
-const { sendJson, handleError, verifyToken, getBusinessId } = require('../../api/_lib/utils');
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     try {
         if (req.method === 'GET') {
             const businessId = getBusinessId(req);

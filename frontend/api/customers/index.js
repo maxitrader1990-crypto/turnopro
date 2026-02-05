@@ -1,8 +1,8 @@
 
-const supabase = require('../../api/_lib/supabase');
-const { sendJson, handleError, verifyToken } = require('../../api/_lib/utils');
+import supabase from '../_lib/supabase.js';
+import { sendJson, handleError, verifyToken } from '../_lib/utils.js';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     try {
         if (req.method === 'GET') {
             const user = await verifyToken(req); // Private standard

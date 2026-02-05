@@ -1,8 +1,8 @@
 
-const supabase = require('../../api/_lib/supabase');
-const { sendJson, handleError, verifyToken, getBusinessId } = require('../../api/_lib/utils');
+import supabase from '../_lib/supabase.js';
+import { sendJson, handleError, verifyToken, getBusinessId } from '../_lib/utils.js';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     const { id } = req.query; // Vercel extracts [id] into query
     if (!id) return sendJson(res, 400, { success: false, error: 'ID required' });
 

@@ -1,8 +1,7 @@
+import supabase from '../../_lib/supabase.js';
+import { sendJson, handleError, verifyToken } from '../../_lib/utils.js';
 
-const supabase = require('../../../api/_lib/supabase'); // Note: 3 levels up because api/employees/[id]/schedule.js
-const { sendJson, handleError, verifyToken } = require('../../../api/_lib/utils');
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     const { id } = req.query; // employee id
     if (req.method !== 'PUT') {
         return sendJson(res, 405, { success: false, error: 'Method Not Allowed' });

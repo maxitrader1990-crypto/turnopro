@@ -1,14 +1,13 @@
-
-const jwt = require('jsonwebtoken');
-const supabase = require('./supabase');
+import jwt from 'jsonwebtoken';
+import supabase from './supabase.js';
 
 // Standard response helper
-const sendJson = (res, statusCode, data) => {
+export const sendJson = (res, statusCode, data) => {
     res.status(statusCode).json(data);
 };
 
 // Error handler helper
-const handleError = (res, err) => {
+export const handleError = (res, err) => {
     console.error('API Error:', err);
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({
@@ -19,7 +18,7 @@ const handleError = (res, err) => {
 
 // Verify Token Middleware (Logic)
 // Returns user object or throws error
-const verifyToken = async (req) => {
+export const verifyToken = async (req) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
@@ -58,7 +57,7 @@ const verifyToken = async (req) => {
     }
 };
 
-const getBusinessId = (req) => {
+export const getBusinessId = (req) => {
     // 1. Check header
     if (req.headers['x-business-id']) {
         return req.headers['x-business-id'];
@@ -69,10 +68,3 @@ const getBusinessId = (req) => {
     }
     return null;
 }
-
-module.exports = {
-    sendJson,
-    handleError,
-    verifyToken,
-    getBusinessId
-};
