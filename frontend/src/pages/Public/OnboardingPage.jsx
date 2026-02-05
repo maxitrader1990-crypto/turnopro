@@ -19,7 +19,9 @@ const OnboardingPage = () => {
             // return success;
             // This is being replaced by the following logic, assuming there might be an 'if' branch for other registration methods (e.g., Google)
             // that would return 'true' directly. For email/password, it returns an object.
-            const result = await registerAuth(data.email, data.password, data.businessName);
+            // Case B: Fresh Registration (Email/Pass) -> Handled by AuthContext helper
+            // We pass businessName AND slug now
+            const result = await registerAuth(data.email, data.password, data.businessName, data.slug);
             if (!result.success) throw new Error("Registration failed");
             return result; // contains { success, autoLogin }
         },

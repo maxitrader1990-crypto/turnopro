@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const register = async (email, password, businessName) => {
+    const register = async (email, password, businessName, subdomain) => {
         try {
             // 1. Sign Up in Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -91,9 +91,46 @@ export const AuthProvider = ({ children }) => {
 
             // 2. Create Business (if name provided)
             if (businessName) {
+                // Generate slug if invalid
+                let finalSlug = subdomain;
+                if (!finalSlug) {
+                    finalSlug = businessName
+                        .toLowerCase()
+                        .trim()
+                        .replace(/\s+/g, '-')
+                        .replace(/[^a-z0-9-]/g, '');
+                }
+
+                // Ensure Uniqueness (Simple check loop)
+                let isUnique = false;
+                let suffix = 0;
+                let checkSlug = finalSlug;
+
+                while (!isUnique && suffix < 10) { // Limit retry to avoid infinite loops
+                    const { data: existing } = await supabase
+                        .from('businesses')
+                        .select('id')
+                        .eq('subdomain', checkSlug)
+                        .maybeSingle();
+
+                    if (!existing) {
+                        isUnique = true;
+                        finalSlug = checkSlug;
+                    } else {
+                        suffix++;
+                        checkSlug = `${finalSlug}-${suffix}`;
+                    }
+                }
+
+                if (!isUnique) throw new Error("Could not generate a unique business URL. Please choose another.");
+
                 const { data: business, error: busError } = await supabase
                     .from('businesses')
-                    .insert({ name: businessName })
+                    .insert({
+                        name: businessName,
+                        subdomain: finalSlug,
+                        gamification_enabled: true
+                    })
                     .select('id')
                     .single();
 
@@ -103,17 +140,21 @@ export const AuthProvider = ({ children }) => {
                 await supabase.from('business_users').insert({
                     business_id: business.id,
                     email: email,
-                    role: 'owner',
-                    // password_hash: ... not needed if using Supabase Auth, but table might require it? Nullable?
-                    // We'll leave it or put a placeholder if constraint exists.
+                    role: 'owner'
                 });
             }
 
-            toast.success('¡Registro exitoso! Por favor verifica tu email.');
-            return true;
+            // Check if session was created immediately (Email Confirm Disabled)
+            if (authData.session) {
+                toast.success('¡Cuenta creada correctamente!');
+                return { success: true, autoLogin: true };
+            } else {
+                toast.success('¡Registro exitoso! Por favor verifica tu email.');
+                return { success: true, autoLogin: false };
+            }
         } catch (error) {
             toast.error(error.message || 'Error al registrarse');
-            return false;
+            return { success: false };
         }
     };
 
