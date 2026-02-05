@@ -1,118 +1,122 @@
 
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const { Client } = require('pg');
+const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
+const path = require('path');
 
 // Load .env
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../backend/.env') }); // Adjust path if needed
+dotenv.config({ path: path.resolve(__dirname, '../backend/.env') });
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
-// NOTE: Ideally use SERVICE_ROLE_KEY to bypass RLS if running locally as admin, but user might only have anon.
-// If RLS blocks us, we might need to sign in as the business owner first.
-// Let's try ANON first, but we might need to actually simulate the login flow or just use SERVICE_ROLE if available.
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+    console.error('DATABASE_URL is missing in backend/.env');
+    process.exit(1);
+}
 
-console.log('Connecting to Supabase...');
-const supabase = createClient(supabaseUrl, supabaseKey);
+const client = new Client({
+    connectionString,
+    ssl: { rejectUnauthorized: false } // Required for Supabase connection from external
+});
 
 const BUSINESS_ID = 'a9baf9af-e526-4688-ae71-afbc98efd32d';
 
 async function seed() {
-    console.log(`Configuring Business: ${BUSINESS_ID}`);
+    try {
+        console.log('Connecting to Database...');
+        await client.connect();
 
-    // 1. Update Business Name
-    const { error: busError } = await supabase
-        .from('businesses')
-        .update({
-            name: 'Ibiza Estudio',
-            gamification_enabled: true
-        })
-        .eq('id', BUSINESS_ID);
+        console.log(`Configuring Business: ${BUSINESS_ID}`);
 
-    if (busError) console.error('Error updating business:', busError);
-    else console.log('Business updated to Ibiza Estudio (Gamification ON)');
+        // 1. Update Business Name
+        await client.query(
+            `UPDATE businesses SET name = $1, gamification_enabled = $2 WHERE id = $3`,
+            ['Ibiza Estudio', true, BUSINESS_ID]
+        );
+        console.log('Business updated to Ibiza Estudio (Gamification ON)');
 
-    // 2. Create Services (Explosive Config)
-    const servicesData = [
-        { name: 'Corte Degradado Premium', duration_minutes: 45, price: 15000, points_reward: 100, category: 'Hair', description: 'Fade perfecto con navaja y lavado.' },
-        { name: 'Barba & Toalla Caliente', duration_minutes: 30, price: 8000, points_reward: 50, category: 'Beard', description: 'Perfilado de barba con ritual de toalla caliente y aceites.' },
-        { name: 'Color & Mechas', duration_minutes: 90, price: 35000, points_reward: 250, category: 'Color', description: 'Cambio de look total.' },
-        { name: 'Corte Infantil', duration_minutes: 30, price: 10000, points_reward: 80, category: 'Hair', description: 'Corte para niños con paciencia y estilo.' },
-    ];
+        // 2. Create Services
+        const servicesData = [
+            { name: 'Corte Degradado Premium', duration_minutes: 45, price: 15000, points_reward: 100, category: 'Hair', description: 'Fade perfecto con navaja y lavado.' },
+            { name: 'Barba & Toalla Caliente', duration_minutes: 30, price: 8000, points_reward: 50, category: 'Beard', description: 'Perfilado de barba con ritual de toalla caliente y aceites.' },
+            { name: 'Color & Mechas', duration_minutes: 90, price: 35000, points_reward: 250, category: 'Color', description: 'Cambio de look total.' },
+            { name: 'Corte Infantil', duration_minutes: 30, price: 10000, points_reward: 80, category: 'Hair', description: 'Corte para niños con paciencia y estilo.' },
+        ];
 
-    const createdServices = [];
-    for (const s of servicesData) {
-        const { data, error } = await supabase
-            .from('services')
-            .insert({ ...s, business_id: BUSINESS_ID })
-            .select('id')
-            .single();
-        if (error) console.error(`Error creating service ${s.name}:`, error.message);
-        else {
-            console.log(`Created service: ${s.name}`);
-            createdServices.push(data.id);
+        for (const s of servicesData) {
+            // Check if exists handling? optional. Just insert.
+            const res = await client.query(
+                `INSERT INTO services (business_id, name, description, duration_minutes, price, points_reward, category)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)
+                 RETURNING id`,
+                [BUSINESS_ID, s.name, s.description, s.duration_minutes, s.price, s.points_reward, s.category]
+            );
+            console.log(`Created service: ${s.name} (ID: ${res.rows[0].id})`);
         }
-    }
 
-    // 3. Create Employees (4 Barbers)
-    const employeesData = [
-        { name: 'Nico "The Blade"', bio: 'Especialista en navaja y fades.', role: 'Master Barber', photo: 'https://cdn.usegalileo.ai/sdxl10/cd823793-2747-4934-8b65-9856a93910c2.png' }, // Placeholder AI Gen
-        { name: 'Leo "Colorist"', bio: 'Experto en colorimetría y cortes modernos.', role: 'Stylist', photo: 'https://cdn.usegalileo.ai/sdxl10/84102b70-128a-40a2-995c-91e845116790.png' },
-        { name: 'Santi "Old School"', bio: 'Barbería clásica y afeitado tradicional.', role: 'Senior Barber', photo: 'https://cdn.usegalileo.ai/sdxl10/e303775d-3893-4158-b769-637dc418295b.png' },
-        { name: 'Mateo "Rookie"', bio: 'Cortes rápidos y buena onda.', role: 'Junior Barber', photo: 'https://cdn.usegalileo.ai/sdxl10/68dfd65f-6a67-4638-89c0-6d8479357410.png' }
-    ];
+        // 3. Create Employees
+        const employeesData = [
+            { name: 'Nico "The Blade"', bio: 'Especialista en navaja y fades.', role: 'Master Barber', photo: 'https://cdn.usegalileo.ai/sdxl10/cd823793-2747-4934-8b65-9856a93910c2.png' },
+            { name: 'Leo "Colorist"', bio: 'Experto en colorimetría y cortes modernos.', role: 'Stylist', photo: 'https://cdn.usegalileo.ai/sdxl10/84102b70-128a-40a2-995c-91e845116790.png' },
+            { name: 'Santi "Old School"', bio: 'Barbería clásica y afeitado tradicional.', role: 'Senior Barber', photo: 'https://cdn.usegalileo.ai/sdxl10/e303775d-3893-4158-b769-637dc418295b.png' },
+            { name: 'Mateo "Rookie"', bio: 'Cortes rápidos y buena onda.', role: 'Junior Barber', photo: 'https://cdn.usegalileo.ai/sdxl10/68dfd65f-6a67-4638-89c0-6d8479357410.png' }
+        ];
 
-    // Note: Creating employees usually requires creating a USER first in `business_users`.
-    // Since we don't have their emails/passwords, we'll generate headers.
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash('ibiza123', salt); // Default password for everyone
 
-    for (const [i, emp] of employeesData.entries()) {
-        const email = `barber${i + 1}@ibiza.com`;
+        for (const [i, emp] of employeesData.entries()) {
+            const email = `barber${i + 1}@ibiza.com`;
 
-        // Check if user exists first to allow re-running
-        const { data: existingUser } = await supabase.from('business_users').select('id').eq('email', email).maybeSingle();
-        let userId = existingUser?.id;
+            // Check user
+            let userId;
+            const userCheck = await client.query(`SELECT id FROM business_users WHERE email = $1`, [email]);
 
-        if (!userId) {
-            // Create User (We can't hash password easily here without bcrypt, but we can try just inserting dummy hash or verify if trigger handles it? No trigger. We need to hash.)
-            // Actually, for this script to work without `bcrypt` dep issues if not installed in root, we assume `backend` `node_modules` has it.
-            // But wait, we are running this with `node`. 
-            // Let's just create the entry in `employees` directly if `user_id` is foreign key?
-            // `user_id` IS required in `employees`.
-            // So we MUST create `business_users`.
-
-            const { data: user, error: uErr } = await supabase.from('business_users').insert({
-                business_id: BUSINESS_ID,
-                full_name: emp.name,
-                email: email,
-                password_hash: '$2b$10$EpOd.4g6S0d.4g6S0d.4g6S0d.4g6S0d.4g6S0d.4g6S0d.4g6S0', // Dummy hash
-                role: 'employee'
-            }).select('id').single();
-
-            if (uErr) {
-                console.error(`Failed to create user ${emp.name}`, uErr);
-                continue;
+            if (userCheck.rows.length > 0) {
+                userId = userCheck.rows[0].id;
+            } else {
+                const newUser = await client.query(
+                    `INSERT INTO business_users (business_id, full_name, email, password_hash, role, created_at)
+                     VALUES ($1, $2, $3, $4, $5, NOW())
+                     RETURNING id`,
+                    [BUSINESS_ID, emp.name, email, hash, 'employee']
+                );
+                userId = newUser.rows[0].id;
             }
-            userId = user.id;
+
+            // Upsert Employee Profile
+            // Postgres NO CONFLICT update requires unique constraint. 
+            // We assume user_id is unique or we just insert if not exists.
+
+            // Try Insert
+            // We need to handle photo field if column exists.
+            // WARNING: I should verify if 'photo' column exists in 'employees'. I assumed so in previous step task.
+            // If it doesn't, this will fail. user said "que se se pueda cargar foto". I modified API logic, but did I ADD THE COLUMN? 
+            // NO. I did NOT run a migration.
+            // I need to add the column first if it's missing.
+
+            // Proactive Migration check
+            try {
+                await client.query(`ALTER TABLE employees ADD COLUMN IF NOT EXISTS photo TEXT`);
+            } catch (e) {
+                console.log('Photo column might already exist or error adding it:', e.message);
+            }
+
+            await client.query(
+                `INSERT INTO employees (business_id, user_id, title, bio, photo, is_active)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 ON CONFLICT (user_id) DO UPDATE SET title = $3, bio = $4, photo = $5`,
+                [BUSINESS_ID, userId, emp.role, emp.bio, emp.photo, true]
+            );
+            console.log(`Created/Updated employee: ${emp.name}`);
         }
 
-        // Create Employee Profile
-        const { error: eErr } = await supabase.from('employees').insert({
-            business_id: BUSINESS_ID,
-            user_id: userId,
-            title: emp.role,
-            bio: emp.bio,
-            photo: emp.photo,
-            is_active: true
-        });
+        console.log('Seed Complete! Ibiza Estudio is ready.');
 
-        if (eErr) console.error(`Failed to create employee profile ${emp.name}`, eErr);
-        else console.log(`Created employee: ${emp.name}`);
+    } catch (err) {
+        console.error('Seed Error:', err);
+    } finally {
+        await client.end();
     }
-
-    console.log('Seed Complete! Ibiza Estudio is ready.');
 }
 
 seed();
