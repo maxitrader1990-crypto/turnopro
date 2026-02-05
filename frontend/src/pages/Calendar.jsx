@@ -4,19 +4,52 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase';
 import Modal from '../components/Modal';
 
 const localizer = momentLocalizer(moment);
 
 const CalendarPage = () => {
-    const { api } = useAuth();
+    const { user } = useAuth();
     const [selectedEvent, setSelectedEvent] = useState(null);
 
-    // Fetch Appointments for range (simplified for MVP: fetch last month/next month logic usually needed)
-    // Here getting all or just current month roughly
     const { data: appointments } = useQuery({
-        queryKey: ['appointments'],
-        queryFn: async () => (await api.get('/appointments')).data
+        queryKey: ['appointments', user?.business_id],
+        queryFn: async () => {
+            if (!user?.business_id) return { data: [] };
+
+            const { data, error } = await supabase
+                .from('appointments')
+                .select(`
+                    id,
+                    appointment_date,
+                    status,
+                    customers (first_name, last_name),
+                    services (name, duration_minutes)
+                `)
+                .eq('business_id', user.business_id);
+
+            if (error) throw error;
+
+            // Map to event format
+            const mapped = data.map(app => {
+                const start = new Date(app.appointment_date);
+                const duration = app.services?.duration_minutes || 60;
+                const end = new Date(start.getTime() + duration * 60000);
+
+                return {
+                    id: app.id,
+                    customer_name: `${app.customers?.first_name} ${app.customers?.last_name}`,
+                    service_name: app.services?.name,
+                    appointment_date: app.appointment_date,
+                    end_time: end.toISOString(),
+                    status: app.status
+                };
+            });
+
+            return { data: mapped };
+        },
+        enabled: !!user?.business_id
     });
 
     const events = appointments?.data?.map(app => ({

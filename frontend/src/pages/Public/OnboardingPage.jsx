@@ -1,58 +1,36 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 const OnboardingPage = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
+    const { register: registerAuth } = useAuth(); // Renaming to avoid conflict with form register
 
-    // Use raw axios here to avoid AuthInterceptor injecting bad headers if we had logic for that
-    // But AuthContext api is fine if it handles no-token gracefully.
-    // Let's use clean axios to be safe for public registration.
-
-    // Use mutation to call the API
     const registerMutation = useMutation({
-        mutationFn: (data) => axios.post('/api/admin/businesses', data),
-        onSuccess: (response) => {
-            const business = response.data.data;
-            toast.success("Business created successfully!", { duration: 5000 });
-
-            // Show the Business ID to the user (important for login)
-            alert(`Business Created!\n\nYOUR BUSINESS ID: ${business.id}\n\nPlease save this ID to login.`);
-
-            // Navigate to login after a short delay
+        mutationFn: async (data) => {
+            const success = await registerAuth(data.email, data.password, data.businessName);
+            if (!success) throw new Error("Registration failed");
+            return success;
+        },
+        onSuccess: () => {
+            // Navigate handled by toast guidance or auto-login in AuthContext
+            // But simpler to just redirect to login if email verification needed or dashboard if auto-logged in.
+            // Our AuthContext logic for register stops at "Verify email", but let's assume auto-confirm or login for now or redirect to login.
             setTimeout(() => {
                 navigate('/login');
             }, 2000);
         },
         onError: (error) => {
             console.error(error);
-            const errorMsg = error.response?.data?.error;
-            const message = typeof errorMsg === 'string'
-                ? errorMsg
-                : errorMsg?.message || JSON.stringify(errorMsg) || "Registration failed. Please try again.";
-
-            toast.error(message);
         }
     });
 
     const onSubmit = (data) => {
-        // Prepare payload matching backend schema
-        const payload = {
-            name: data.businessName,
-            subdomain: data.slug,
-            email: data.email,
-            owner_name: `${data.firstName} ${data.lastName}`,
-            owner_password: data.password,
-            plan_type: 'starter',
-            phone: data.phone,
-            gamification_enabled: true
-        };
-
-        registerMutation.mutate(payload);
+        registerMutation.mutate(data);
     };
 
     return (

@@ -1,47 +1,66 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase';
 import { Trophy, Gift, Save } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
 const Gamification = () => {
-    const { api } = useAuth();
+    const { user } = useAuth();
     const queryClient = useQueryClient();
     const [isRewardModalOpen, setIsRewardModalOpen] = useState(false);
     const { register: registerReward, handleSubmit: submitReward, reset: resetReward } = useForm();
-    const { register: registerConfig, handleSubmit: submitConfig, setValue } = useForm(); // Separate form for config
+    const { register: registerConfig, handleSubmit: submitConfig, setValue } = useForm();
 
-    // Fetch Rewards
     const { data: rewards } = useQuery({
-        queryKey: ['rewards'],
-        queryFn: async () => (await api.get('/gamification/rewards')).data
+        queryKey: ['rewards', user?.business_id],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('rewards')
+                .select('*')
+                .eq('business_id', user.business_id)
+                .is('is_active', true)
+                .order('points_cost', { ascending: true });
+            if (error) throw error;
+            return { data };
+        },
+        enabled: !!user?.business_id
     });
 
-    // Create Reward Mutation
     const createRewardMutation = useMutation({
-        mutationFn: (data) => api.post('/gamification/rewards', data),
+        mutationFn: async (data) => {
+            const { error } = await supabase
+                .from('rewards')
+                .insert({
+                    ...data,
+                    business_id: user.business_id,
+                    is_active: true
+                });
+            if (error) throw error;
+        },
         onSuccess: () => {
             queryClient.invalidateQueries(['rewards']);
             toast.success('Reward created');
             setIsRewardModalOpen(false);
             resetReward();
-        }
+        },
+        onError: (err) => toast.error('Error: ' + err.message)
     });
 
-    // Config Mutation (Assuming GET config endpoints exists? Actually I only made patch... need a GET for config?)
-    // Ah, I missed GET config in my previous phase. 
-    // I made `updateConfig` but generic `GET /gamification/wallet` returns config level.
-    // Let's assume for now default values or I add a quick endpoint if needed.
-    // Or just use the patch to set it blindly.
-
-    // Actually, `getWallet` usually returns config.
-    // Let's rely on patching for now.
-
     const updateConfigMutation = useMutation({
-        mutationFn: (data) => api.patch('/gamification/config', data),
-        onSuccess: () => toast.success('Settings saved')
+        mutationFn: async (data) => {
+            const { error } = await supabase
+                .from('gamification_config')
+                .upsert({
+                    business_id: user.business_id,
+                    points_per_visit: data.points_per_visit,
+                }, { onConflict: 'business_id' });
+            if (error) throw error;
+        },
+        onSuccess: () => toast.success('Settings saved'),
+        onError: (err) => toast.error('Error: ' + err.message)
     });
 
     return (

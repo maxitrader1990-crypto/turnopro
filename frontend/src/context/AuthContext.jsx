@@ -1,12 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { supabase } from '../supabase';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
-
-const api = axios.create({
-    baseURL: '/api' // Proxy handles host
-});
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -15,69 +11,116 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            fetchUser();
-        } else {
-            setLoading(false);
-        }
+        // Check active session
+        checkSession();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN') {
+                await fetchBusinessProfile(session.user);
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
-    const fetchUser = async () => {
+    const checkSession = async () => {
         try {
-            console.log("AuthContext: Fetching user...");
-            const res = await api.get('/auth/me');
-            console.log("AuthContext: User fetched", res.data.data);
-            setUser(res.data.data);
-
-            // Set business ID for tenant isolation if exists
-            if (res.data.data.business_id) {
-                api.defaults.headers.common['x-business-id'] = res.data.data.business_id;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                await fetchBusinessProfile(session.user);
             }
-
         } catch (error) {
-            console.error("AuthContext: Error fetching user", error);
-            localStorage.removeItem('token');
-            setUser(null);
+            console.error('Session check error', error);
         } finally {
             setLoading(false);
-            console.log("AuthContext: Loading set to false");
         }
     };
 
-    const login = async (email, password, businessId) => {
+    const fetchBusinessProfile = async (authUser) => {
         try {
-            const res = await api.post('/auth/login', { email, password, business_id: businessId });
-            const { token, user } = res.data;
+            // Find business link
+            // Try 'business_users' (our custom table)
+            const { data: profile, error } = await supabase
+                .from('business_users')
+                .select('*')
+                .eq('email', authUser.email)
+                .single();
 
-            localStorage.setItem('token', token);
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-            // Set business context
-            if (user.business_id) {
-                api.defaults.headers.common['x-business-id'] = user.business_id;
+            if (profile) {
+                setUser({ ...authUser, ...profile }); // Merge auth data with business data
+            } else {
+                // If no profile found, maybe they are just a raw auth user or need onboarding
+                console.log('No business profile found for', authUser.email);
+                setUser(authUser);
             }
+        } catch (error) {
+            console.error('Error fetching profile', error);
+            setUser(authUser);
+        }
+    };
 
-            setUser(user);
-            toast.success('Welcome back!');
+    const login = async (email, password) => {
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) throw error;
+
+            toast.success('¡Bienvenido!');
             return true;
         } catch (error) {
-            const errorMsg = error.response?.data?.error;
-            const message = typeof errorMsg === 'string'
-                ? errorMsg
-                : errorMsg?.message || JSON.stringify(errorMsg) || 'Login failed';
-
-            toast.error(message);
+            toast.error(error.message || 'Error al iniciar sesión');
             return false;
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        delete api.defaults.headers.common['Authorization'];
+    const register = async (email, password, businessName) => {
+        try {
+            // 1. Sign Up in Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email,
+                password
+            });
+
+            if (authError) throw authError;
+
+            // 2. Create Business (if name provided)
+            if (businessName) {
+                const { data: business, error: busError } = await supabase
+                    .from('businesses')
+                    .insert({ name: businessName })
+                    .select('id')
+                    .single();
+
+                if (busError) throw busError;
+
+                // 3. Create Profile in business_users
+                await supabase.from('business_users').insert({
+                    business_id: business.id,
+                    email: email,
+                    role: 'owner',
+                    // password_hash: ... not needed if using Supabase Auth, but table might require it? Nullable?
+                    // We'll leave it or put a placeholder if constraint exists.
+                });
+            }
+
+            toast.success('¡Registro exitoso! Por favor verifica tu email.');
+            return true;
+        } catch (error) {
+            toast.error(error.message || 'Error al registrarse');
+            return false;
+        }
+    };
+
+    const logout = async () => {
+        await supabase.auth.signOut();
         setUser(null);
-        toast.success('Logged out');
+        toast.success('Sesión cerrada');
     };
 
     const value = {
@@ -85,7 +128,9 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
-        api // Expose axios instance with interceptors
+        register,
+        // Expose supabase client directly if needed, or helper
+        api: null // We are removing `api` axios instance. Components should use `supabase` import.
     };
 
     return (
