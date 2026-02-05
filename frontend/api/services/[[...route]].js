@@ -2,30 +2,25 @@ import supabase from '../_lib/supabase.js';
 import { sendJson, handleError, verifyToken, getBusinessId } from '../_lib/utils.js';
 
 export default async function handler(req, res) {
-    const { route } = req.query;
-    // /api/services -> route empty? No, this is [...route], so it captures everything AFTER /api/services/.
-    // Wait, if it's main index, we need to handle root access?
-    // Vercel routes: /api/services/[...route].js handles /api/services/foo.
-    // DOES IT handle /api/services/ ? 
-    // Usually [...route] requires at least one segment. [[...route]] (optional catch all) handles root too.
-    // I should use [[...route]].js if I want to handle /api/services/ (index).
-    // OR create index.js AND [...route].js. But that adds 2 functions.
-    // Best practice: Use [[...route]].js (double brackets) for optional catch-all.
-    // NOTE: Node.js file names in Windows can be tricky with brackets? No, standard in Next/Vercel.
-    // Let's assume Vercel creates distinct entry points.
-    // If I name it `index.js`, it handles `/`.
-    // If I name it `[...route].js`, it handles `/anything`.
-    // I want 1 function to handle ALL.
-    // I will use `[[...route]].js`.
+    // Normalize route to array
+    let segments = [];
+    if (Array.isArray(route)) {
+        segments = route;
+    } else if (typeof route === 'string') {
+        segments = [route];
+    } else {
+        // Fallback: try parsing req.url
+        const path = req.url.split('?')[0];
+        const parts = path.split('/');
+        // parts: ['', 'api', 'services', '123']
+        const servicesIndex = parts.indexOf('services');
+        if (servicesIndex !== -1 && servicesIndex < parts.length - 1) {
+            segments = parts.slice(servicesIndex + 1);
+        }
+    }
 
-    // Logic:
-    // if route is undefined or empty array -> Index
-    // if route has 1 element -> ID
-
-    // But `req.query.route` might be string or array.
-
-    const routeArr = route || [];
-    const resourceId = routeArr.length > 0 ? routeArr[0] : null;
+    // Identify resourceId
+    const resourceId = segments.length > 0 ? segments[0] : null;
 
     try {
         // --- INDEX (LIST / CREATE) ---
