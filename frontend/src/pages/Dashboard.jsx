@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { Users, Calendar, Trophy, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Stats Card Component
 const StatCard = ({ title, value, icon: Icon, color }) => (
@@ -18,7 +18,15 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
 );
 
 const Dashboard = () => {
-    const { user, api } = useAuth(); // Use api from context to get headers
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // If logged in but no business_id (and not loading), redirect to onboarding
+        if (user && !user.business_id && !user.role?.includes('admin')) { // Assuming super admin might have bypass
+            navigate('/onboarding');
+        }
+    }, [user, navigate]);
 
     // Example query (we might need a dashboard endpoint later, but for now lets just show static/user data)
     // TODO: Create /api/admin/dashboard-stats endpoint
