@@ -26,31 +26,31 @@ const Dashboard = () => {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-500 mt-1">Welcome back, {user?.email}</p>
+                <h1 className="text-2xl font-bold text-gray-900">Panel Principal</h1>
+                <p className="text-gray-500 mt-1">Bienvenido de nuevo, {user?.email}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard
-                    title="Total Appointments"
+                    title="Citas Totales"
                     value="1,240"
                     icon={Calendar}
                     color="bg-blue-500"
                 />
                 <StatCard
-                    title="Active Customers"
+                    title="Clientes Activos"
                     value="850"
                     icon={Users}
                     color="bg-emerald-500"
                 />
                 <StatCard
-                    title="Points Awarded"
+                    title="Puntos Otorgados"
                     value="45,200"
                     icon={Trophy}
                     color="bg-purple-500"
                 />
                 <StatCard
-                    title="Monthly Revenue"
+                    title="Ingresos Mensuales"
                     value="$12,450"
                     icon={TrendingUp}
                     color="bg-orange-500"
@@ -58,9 +58,9 @@ const Dashboard = () => {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Appointments</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Citas Recientes</h3>
                 <div className="text-center py-10 text-gray-400">
-                    placeholder for table
+                    Próximamente...
                 </div>
             </div>
         </div>

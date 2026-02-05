@@ -18,15 +18,15 @@ const Sidebar = () => {
     const { logout, user } = useAuth();
 
     const links = [
-        { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/calendar', label: 'Calendar', icon: Calendar },
-        { to: '/customers', label: 'Customers', icon: Users },
-        { to: '/employees', label: 'Employees', icon: UserCog },
-        { to: '/services', label: 'Services', icon: Scissors },
+        { to: '/dashboard', label: 'Panel Principal', icon: LayoutDashboard },
+        { to: '/calendar', label: 'Calendario', icon: Calendar },
+        { to: '/customers', label: 'Clientes', icon: Users },
+        { to: '/employees', label: 'Empleados', icon: UserCog },
+        { to: '/services', label: 'Servicios', icon: Scissors },
         // Only show Gamification if business has it enabled (UI logic later) 
         // For now show all
-        { to: '/gamification', label: 'Gamification', icon: Trophy },
-        { to: '/settings', label: 'Settings', icon: Settings },
+        { to: '/gamification', label: 'Gamificación', icon: Trophy },
+        { to: '/settings', label: 'Configuración', icon: Settings },
     ];
 
     return (
@@ -59,8 +59,9 @@ const Sidebar = () => {
                     onClick={logout}
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-red-500/10 hover:text-red-400 w-full transition-colors text-sm font-medium"
                 >
+                    Certificado SSL (Seguro)
                     <LogOut size={20} />
-                    Sign Out
+                    Cerrar Sesión
                 </button>
             </div>
         </div>

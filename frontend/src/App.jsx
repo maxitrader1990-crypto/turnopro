@@ -7,6 +7,7 @@ import Employees from './pages/Employees';
 import Gamification from './pages/Gamification';
 import Customers from './pages/Customers';
 import CalendarPage from './pages/Calendar';
+import Settings from './pages/Settings';
 import Layout from './components/Layout';
 import OnboardingPage from './pages/Public/OnboardingPage';
 import BookingPage from './pages/Public/BookingPage';
@@ -38,6 +39,7 @@ function App() {
                             <Route path="/gamification" element={<Gamification />} />
                             <Route path="/customers" element={<Customers />} />
                             <Route path="/calendar" element={<CalendarPage />} />
+                            <Route path="/settings" element={<Settings />} />
                             {/* Add more routes here */}
                         </Route>
                     </Route>
