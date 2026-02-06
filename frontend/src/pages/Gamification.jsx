@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
-import { Trophy, Gift, Save } from 'lucide-react';
+import { Trophy, Gift, Save, Share2, Copy, ExternalLink } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -71,6 +71,43 @@ const Gamification = () => {
 
                 {/* Configuration Panel */}
                 <div className="lg:col-span-1 space-y-6">
+                    {/* Share Link Card */}
+                    <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl shadow-lg p-6 text-white">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Share2 className="text-purple-200" />
+                            <h2 className="text-lg font-bold">Portal de Clientes</h2>
+                        </div>
+                        <p className="text-purple-100 text-sm mb-4">
+                            Comparte este enlace con tus clientes para que consulten sus puntos.
+                        </p>
+
+                        <div className="bg-white/10 p-3 rounded-lg flex items-center justify-between gap-2 mb-3 border border-white/20">
+                            <code className="text-xs truncate font-mono text-purple-50">
+                                {`${window.location.origin}/points/${user?.subdomain || user?.business_id}`}
+                            </code>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(`${window.location.origin}/points/${user?.subdomain || user?.business_id}`);
+                                    toast.success('Enlace copiado!');
+                                }}
+                                className="flex-1 bg-white text-purple-700 py-2 rounded-lg font-bold text-sm hover:bg-purple-50 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Copy size={16} /> Copiar
+                            </button>
+                            <a
+                                href={`/points/${user?.subdomain || user?.business_id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-3 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors flex items-center justify-center"
+                            >
+                                <ExternalLink size={18} />
+                            </a>
+                        </div>
+                    </div>
+
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Trophy className="text-yellow-500" />
