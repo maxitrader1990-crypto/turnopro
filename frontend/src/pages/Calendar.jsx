@@ -144,9 +144,9 @@ const CalendarPage = () => {
                                 <button
                                     onClick={() => completeMutation.mutate(selectedEvent.id)}
                                     disabled={completeMutation.isPending}
-                                    className={`w-full py-2 rounded-lg text-white font-bold transition-colors ${completeMutation.isPending
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-green-600 hover:bg-green-700 shadow-md'
+                                    className={`w-full py-2 rounded-lg text-white font-bold transition-all transform hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-lg ${completeMutation.isPending
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
                                         }`}
                                 >
                                     {completeMutation.isPending ? 'Procesando...' : 'Marcar como Completado'}

@@ -356,7 +356,7 @@ const BookingPage = () => {
                                     {errors.phone && <span className="text-xs text-red-500">Requerido</span>}
                                 </div>
 
-                                <button type="submit" className="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 mt-6 shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled={mutation.isPending}>
+                                <button type="submit" className="w-full btn-primary mt-6" disabled={mutation.isPending}>
                                     {mutation.isPending ? 'Confirmando...' : 'Confirmar Reserva'}
                                 </button>
                             </form>
