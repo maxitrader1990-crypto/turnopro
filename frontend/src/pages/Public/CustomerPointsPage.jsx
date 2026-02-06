@@ -5,6 +5,7 @@ import { supabase } from '../../supabase';
 import { Trophy, Gift, Search, Loader, AlertCircle, MessageCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import InstallPrompt from '../../components/InstallPrompt';
 
 const CustomerPointsPage = () => {
     const { slug } = useParams();
@@ -205,7 +206,13 @@ const CustomerPointsPage = () => {
                     </button>
                 </div>
 
+// ... imports
+                import InstallPrompt from '../../components/InstallPrompt';
+
+            // ... component code ...
+
             </div>
+            <InstallPrompt />
         </div>
     );
 };

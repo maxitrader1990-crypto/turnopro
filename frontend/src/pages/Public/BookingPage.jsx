@@ -212,7 +212,8 @@ const BookingPage = () => {
     const getWhatsAppLink = (emp, serv, date, time) => {
         const phone = emp?.phone || '5492804976552';
         const clean = cleanPhone(phone);
-        const msg = `Hola ${emp?.first_name || 'TurnoPro'}, quiero confirmar mi turno para ${serv?.name} el ${date} a las ${time}.`;
+        const pointsLink = `${window.location.origin}/points/${slug}`;
+        const msg = `Hola ${emp?.first_name || 'TurnoPro'}, quiero confirmar mi turno para ${serv?.name} el ${date} a las ${time}.\n\nConsulta mis puntos aquí: ${pointsLink}`;
         return `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
     };
 
