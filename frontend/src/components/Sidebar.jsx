@@ -30,7 +30,7 @@ const Sidebar = () => {
     ];
 
     return (
-    return (
+
         <div className="h-screen w-64 bg-gradient-to-b from-gray-900 to-black text-white flex flex-col fixed left-0 top-0 border-r border-white/10 shadow-2xl z-50">
             <div className="p-6 border-b border-white/5">
                 <h1 className="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">TurnoPro</h1>
