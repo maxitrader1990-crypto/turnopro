@@ -219,15 +219,19 @@ const BookingPage = () => {
 
     if (loadingError) {
         return (
-            <div className="h-screen flex flex-col items-center justify-center p-4 text-center">
+            <div className="h-screen flex flex-col items-center justify-center p-4 text-center bg-premium-bg text-white">
                 <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-                <h2 className="text-xl font-bold text-gray-800">{loadingError}</h2>
-                <p className="text-gray-500 mt-2">Por favor contacta al administrador del negocio.</p>
+                <h2 className="text-xl font-bold">{loadingError}</h2>
+                <p className="text-gray-400 mt-2">Por favor contacta al administrador del negocio.</p>
             </div>
         );
     }
 
-    if (step === 0) return <div className="h-screen flex items-center justify-center"><Loader className="animate-spin text-black" size={40} /></div>;
+    if (step === 0) return (
+        <div className="h-screen flex items-center justify-center bg-premium-bg">
+            <Loader className="animate-spin text-urban-accent" size={40} />
+        </div>
+    );
 
     const handleServiceSelect = (s) => { setBookingData({ ...bookingData, service: s }); setStep(2); };
     const handleEmployeeSelect = (e) => { setBookingData({ ...bookingData, employee: e }); setStep(3); };
@@ -235,34 +239,57 @@ const BookingPage = () => {
     const onSubmit = (d) => mutation.mutate(d);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4">
-            <div className="max-w-3xl w-full bg-white rounded-2xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative">
+        <div className="min-h-screen bg-premium-bg flex flex-col items-center p-4">
+            {/* Background Glow */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-urban-secondary/20 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-urban-accent/10 rounded-full blur-[120px]" />
+            </div>
+
+            <div className="max-w-3xl w-full bg-premium-card backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden min-h-[600px] flex flex-col relative z-10 animate-fade-in-up">
+
                 {/* Header */}
-                <div className="bg-black p-6 text-white text-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-800 opacity-90"></div>
+                <div className="relative p-8 text-center border-b border-white/5">
+                    <div className="absolute inset-0 bg-gradient-to-b from-urban-accent/5 to-transparent opacity-50"></div>
                     <div className="relative z-10">
-                        <h1 className="text-2xl font-bold uppercase tracking-wider">{business?.name}</h1>
-                        <p className="opacity-70 text-sm mt-1">Reserva tu experiencia profesional</p>
+                        <h1 className="text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                            {business?.name}
+                        </h1>
+                        <p className="text-urban-accent text-sm mt-2 font-medium tracking-wide">EXPERIENCIA PREMIUM</p>
                     </div>
                 </div>
 
-                <div className="flex-1 p-6 sm:p-8">
+                <div className="flex-1 p-6 sm:p-10">
                     {/* STEP 1: SERVICES */}
                     {step === 1 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-800"><Scissors className="text-gray-900" /> Elige un Servicio</h2>
-                            {loadingServices ? <div className="flex justify-center p-8"><Loader className="animate-spin" /></div> : (
-                                <div className="grid gap-3">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
+                                <Scissors className="text-urban-accent" />
+                                Elige un Servicio
+                            </h2>
+
+                            {loadingServices ? (
+                                <div className="flex justify-center p-8"><Loader className="animate-spin text-urban-accent" /></div>
+                            ) : (
+                                <div className="grid gap-4">
                                     {services?.length === 0 && <p className="text-center text-gray-500">No hay servicios disponibles.</p>}
                                     {services?.map(s => (
-                                        <div key={s.id} onClick={() => handleServiceSelect(s)} className="p-4 border border-gray-100 rounded-xl hover:border-black hover:shadow-md cursor-pointer transition-all flex justify-between items-center group bg-white">
+                                        <div
+                                            key={s.id}
+                                            onClick={() => handleServiceSelect(s)}
+                                            className="p-5 border border-white/5 bg-white/5 rounded-2xl hover:border-urban-accent/50 hover:bg-white/10 hover:scale-[1.02] cursor-pointer transition-all duration-300 group flex justify-between items-center"
+                                        >
                                             <div>
-                                                <span className="font-bold text-gray-800 text-lg group-hover:text-black">{s.name}</span>
-                                                <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                                                    <span className="flex items-center gap-1"><Clock size={14} />{s.duration_minutes} min</span>
+                                                <span className="font-bold text-gray-100 text-lg group-hover:text-white transition-colors">{s.name}</span>
+                                                <div className="flex items-center gap-3 text-sm text-gray-400 mt-2">
+                                                    <span className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-md">
+                                                        <Clock size={14} className="text-urban-accent" /> {s.duration_minutes} min
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <span className="font-bold text-gray-900 text-lg">${s.price}</span>
+                                            <span className="font-bold text-urban-accent text-xl group-hover:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-all">
+                                                ${s.price}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
@@ -272,120 +299,171 @@ const BookingPage = () => {
 
                     {/* STEP 2: STAFF */}
                     {step === 2 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><User /> Elige Profesional</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                <div onClick={() => handleEmployeeSelect(null)} className="p-4 border rounded-xl hover:border-black hover:bg-gray-50 cursor-pointer text-center flex flex-col items-center justify-center min-h-[160px]">
-                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 text-gray-500 font-bold text-xl">?</div>
-                                    <span className="font-bold block">Cualquiera</span>
-                                    <span className="text-xs text-gray-500">Disponibilidad máxima</span>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
+                                <User className="text-urban-accent" />
+                                Elige Profesional
+                            </h2>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                                <div
+                                    onClick={() => handleEmployeeSelect(null)}
+                                    className="p-6 border border-white/5 bg-white/5 rounded-2xl hover:border-urban-accent/50 hover:bg-white/10 cursor-pointer text-center flex flex-col items-center justify-center min-h-[180px] transition-all duration-300 group"
+                                >
+                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-400 font-bold text-2xl group-hover:text-white group-hover:bg-urban-accent/20 transition-all border border-white/5 group-hover:border-urban-accent/30">?</div>
+                                    <span className="font-bold block text-white mb-1">Cualquiera</span>
+                                    <span className="text-xs text-gray-400 group-hover:text-urban-accent transition-colors">Disponibilidad máxima</span>
                                 </div>
+
                                 {employees?.map(e => (
-                                    <div key={e.id} onClick={() => handleEmployeeSelect(e)} className="p-4 border rounded-xl hover:border-black hover:bg-gray-50 cursor-pointer text-center flex flex-col items-center min-h-[160px]">
-                                        <img src={e.photo || `https://ui-avatars.com/api/?name=${e.first_name}&background=random`} alt={e.first_name} className="w-16 h-16 rounded-full mx-auto mb-3 object-cover shadow-sm" />
-                                        <span className="font-bold block text-gray-900">{e.first_name}</span>
-                                        <span className="text-xs text-gray-500">{e.title || 'Barbero'}</span>
+                                    <div
+                                        key={e.id}
+                                        onClick={() => handleEmployeeSelect(e)}
+                                        className="p-6 border border-white/5 bg-white/5 rounded-2xl hover:border-urban-accent/50 hover:bg-white/10 cursor-pointer text-center flex flex-col items-center min-h-[180px] transition-all duration-300 group"
+                                    >
+                                        <div className="relative mb-4">
+                                            <div className="absolute inset-0 bg-urban-accent rounded-full blur opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
+                                            <img
+                                                src={e.photo || `https://ui-avatars.com/api/?name=${e.first_name}&background=1f1f23&color=fff`}
+                                                alt={e.first_name}
+                                                className="relative w-20 h-20 rounded-full object-cover shadow-lg border-2 border-transparent group-hover:border-urban-accent transition-all"
+                                            />
+                                        </div>
+                                        <span className="font-bold block text-white text-lg">{e.first_name}</span>
+                                        <span className="text-xs text-urban-accent uppercase tracking-wider font-medium mt-1">{e.title || 'Specialist'}</span>
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={() => setStep(1)} className="mt-8 text-gray-400 hover:text-black underline text-sm">Volver</button>
+                            <button onClick={() => setStep(1)} className="mt-8 text-gray-500 hover:text-white underline text-sm transition-colors">Volver</button>
                         </div>
                     )}
 
                     {/* STEP 3: DATE & TIME */}
                     {step === 3 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CalendarIcon /> Fecha y Hora</h2>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
+                                <CalendarIcon className="text-urban-accent" />
+                                Fecha y Hora
+                            </h2>
+
                             <input
                                 type="date"
-                                className="w-full p-4 border border-gray-300 rounded-xl mb-6 text-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                                className="w-full p-4 border border-white/10 bg-black/20 rounded-xl mb-8 text-lg text-white font-medium focus:ring-1 focus:ring-urban-accent focus:border-urban-accent outline-none transition-all color-scheme-dark"
                                 min={new Date().toISOString().split('T')[0]}
                                 onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
                             />
+
                             {bookingData.date && (
                                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 animate-in fade-in">
                                     {slots?.map(t => (
-                                        <button key={t} onClick={() => handleTimeSelect(t)} className="py-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-black hover:text-white transition-all font-medium">{t}</button>
+                                        <button
+                                            key={t}
+                                            onClick={() => handleTimeSelect(t)}
+                                            className="py-3 bg-white/5 rounded-xl border border-white/5 hover:bg-urban-accent hover:text-black hover:border-urban-accent hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all font-bold text-gray-300"
+                                        >
+                                            {t}
+                                        </button>
                                     ))}
                                 </div>
                             )}
-                            <div className="pt-6"><button onClick={() => setStep(2)} className="text-gray-400 hover:text-black underline text-sm">Volver</button></div>
+                            <div className="pt-6"><button onClick={() => setStep(2)} className="text-gray-500 hover:text-white underline text-sm transition-colors">Volver</button></div>
                         </div>
                     )}
 
                     {/* STEP 4: CONFIRMATION FORM */}
                     {step === 4 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-xl font-bold mb-6">Completa tus datos</h2>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <h2 className="text-2xl font-bold mb-6 text-white text-center">Completa tus datos</h2>
 
-                            <div className="bg-gray-50 p-5 rounded-xl text-sm border-l-4 border-black mb-6 space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500">Servicio:</span>
-                                    <span className="font-bold text-gray-900">{bookingData.service?.name}</span>
+                            <div className="bg-white/5 p-6 rounded-2xl text-sm border-l-4 border-urban-accent mb-8 space-y-3 shadow-lg">
+                                <div className="flex justify-between border-b border-white/5 pb-2">
+                                    <span className="text-gray-400">Servicio</span>
+                                    <span className="font-bold text-white text-base">{bookingData.service?.name}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500">Precio:</span>
-                                    <span className="font-bold text-gray-900">${bookingData.service?.price}</span>
+                                <div className="flex justify-between border-b border-white/5 pb-2">
+                                    <span className="text-gray-400">Precio</span>
+                                    <span className="font-bold text-urban-accent text-base">${bookingData.service?.price}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500">Profesional:</span>
-                                    <span className="font-bold text-gray-900">{bookingData.employee ? bookingData.employee.first_name : 'Cualquiera'}</span>
+                                <div className="flex justify-between border-b border-white/5 pb-2">
+                                    <span className="text-gray-400">Profesional</span>
+                                    <span className="font-bold text-white">{bookingData.employee ? bookingData.employee.first_name : 'Cualquiera'}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500">Fecha:</span>
-                                    <span className="font-bold text-gray-900">{bookingData.date} - {bookingData.time}</span>
+                                <div className="flex justify-between pt-1">
+                                    <span className="text-gray-400">Fecha</span>
+                                    <span className="font-bold text-white uppercase tracking-wider">{bookingData.date} • {bookingData.time}</span>
                                 </div>
                             </div>
 
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <input {...register('first_name', { required: true })} placeholder="Nombre" className="p-3 border rounded-lg w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all" />
-                                        {errors.first_name && <span className="text-xs text-red-500">Requerido</span>}
+                                        <input
+                                            {...register('first_name', { required: true })}
+                                            placeholder="Nombre"
+                                            className="input-urban w-full"
+                                        />
+                                        {errors.first_name && <span className="text-xs text-red-400">Requerido</span>}
                                     </div>
                                     <div className="space-y-1">
-                                        <input {...register('last_name', { required: true })} placeholder="Apellido" className="p-3 border rounded-lg w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all" />
-                                        {errors.last_name && <span className="text-xs text-red-500">Requerido</span>}
+                                        <input
+                                            {...register('last_name', { required: true })}
+                                            placeholder="Apellido"
+                                            className="input-urban w-full"
+                                        />
+                                        {errors.last_name && <span className="text-xs text-red-400">Requerido</span>}
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <input {...register('email', { required: true })} type="email" placeholder="Email (para avisos)" className="p-3 border rounded-lg w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all" />
-                                    {errors.email && <span className="text-xs text-red-500">Requerido</span>}
+                                    <input
+                                        {...register('email', { required: true })}
+                                        type="email"
+                                        placeholder="Email (para avisos)"
+                                        className="input-urban w-full"
+                                    />
+                                    {errors.email && <span className="text-xs text-red-400">Requerido</span>}
                                 </div>
                                 <div className="space-y-1">
-                                    <input {...register('phone', { required: true })} placeholder="WhatsApp (Ej: 2804...)" className="p-3 border rounded-lg w-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all" />
-                                    {errors.phone && <span className="text-xs text-red-500">Requerido</span>}
+                                    <input
+                                        {...register('phone', { required: true })}
+                                        placeholder="WhatsApp (Ej: 2804...)"
+                                        className="input-urban w-full"
+                                    />
+                                    {errors.phone && <span className="text-xs text-red-400">Requerido</span>}
                                 </div>
 
-                                <button type="submit" className="w-full btn-primary mt-6" disabled={mutation.isPending}>
+                                <button type="submit" className="w-full btn-urban mt-6 text-lg tracking-wide uppercase" disabled={mutation.isPending}>
                                     {mutation.isPending ? 'Confirmando...' : 'Confirmar Reserva'}
                                 </button>
                             </form>
-                            <div className="pt-4 text-center"><button onClick={() => setStep(3)} className="text-gray-400 hover:text-black underline text-sm">Volver</button></div>
+                            <div className="pt-4 text-center"><button onClick={() => setStep(3)} className="text-gray-500 hover:text-white underline text-sm transition-colors">Volver</button></div>
                         </div>
                     )}
 
                     {/* STEP 5: SUCCESS */}
                     {step === 5 && (
-                        <div className="text-center py-10 animate-in zoom-in duration-300">
-                            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600 shadow-sm">
-                                <CheckCircle size={48} />
+                        <div className="text-center py-12 animate-in zoom-in duration-500">
+                            <div className="relative w-28 h-28 mx-auto mb-8">
+                                <div className="absolute inset-0 bg-green-500 rounded-full blur-xl opacity-20 animate-pulse"></div>
+                                <div className="relative w-full h-full bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-premium-bg">
+                                    <CheckCircle size={56} className="text-white drop-shadow-md" />
+                                </div>
                             </div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-2">¡Reserva Confirmada!</h2>
-                            <p className="text-gray-500 mb-8 max-w-xs mx-auto">Tu turno ha sido agendado correctamente. Te hemos enviado un email con los detalles.</p>
+
+                            <h2 className="text-4xl font-black text-white mb-4 tracking-tight">¡Confirmado!</h2>
+                            <p className="text-gray-400 mb-10 max-w-sm mx-auto text-lg">Tu turno ha sido agendado. Te enviamos los detalles por email.</p>
 
                             <a
                                 href={getWhatsAppLink(bookingData.employee, bookingData.service, bookingData.date, bookingData.time)}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-4 rounded-full font-bold hover:bg-[#20bd5a] transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                                className="inline-flex items-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#1faa53] transition-all shadow-[0_0_20px_rgba(37,211,102,0.3)] hover:shadow-[0_0_30px_rgba(37,211,102,0.5)] transform hover:-translate-y-1"
                             >
                                 <MessageCircle size={24} />
-                                Confirmar por WhatsApp
+                                <span>Confirmar por WhatsApp</span>
                             </a>
 
-                            <div className="mt-12 border-t pt-8">
-                                <button onClick={() => window.location.reload()} className="text-gray-400 hover:text-black underline text-sm">Reservar otro turno</button>
+                            <div className="mt-16 border-t border-white/5 pt-8">
+                                <button onClick={() => window.location.reload()} className="text-urban-accent hover:text-white hover:underline text-sm font-medium transition-colors">Reservar otro turno</button>
                             </div>
                         </div>
                     )}
@@ -397,12 +475,12 @@ const BookingPage = () => {
                 href="https://wa.me/5492804976552?text=Hola,%20tengo%20una%20consulta%20sobre%20turnos."
                 target="_blank"
                 rel="noreferrer"
-                className="fixed bottom-6 right-6 bg-white text-green-600 p-3 rounded-full shadow-lg border border-green-100 hover:scale-110 transition-all z-50 flex items-center gap-2 group"
+                className="fixed bottom-6 right-6 bg-premium-card backdrop-blur-md border border-white/10 text-white p-3 rounded-full shadow-2xl hover:scale-110 transition-all z-50 flex items-center gap-3 group overflow-hidden pr-0 hover:pr-4"
             >
-                <div className="bg-green-500 text-white rounded-full p-2">
+                <div className="bg-[#25D366] text-white rounded-full p-2 shadow-[0_0_10px_rgba(37,211,102,0.4)]">
                     <MessageCircle size={24} />
                 </div>
-                <span className="font-bold text-green-700 pr-2 hidden group-hover:block transition-all">¿Ayuda?</span>
+                <span className="font-bold text-white hidden group-hover:block transition-all whitespace-nowrap">¿Necesitas ayuda?</span>
             </a>
         </div>
     );
