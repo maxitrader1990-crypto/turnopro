@@ -18,32 +18,47 @@ const CalendarPage = () => {
         queryFn: async () => {
             if (!user?.business_id) return { data: [] };
 
+            console.log("Fetching appointments for business:", user.business_id);
+
             const { data, error } = await supabase
                 .from('appointments')
                 .select(`
                     id,
                     appointment_date,
+                    start_time,
+                    end_time,
                     status,
                     customers (first_name, last_name),
                     services (name, duration_minutes)
                 `)
                 .eq('business_id', user.business_id);
 
-            if (error) throw error;
+            if (error) {
+                console.error("Error fetching appointments:", error);
+                throw error;
+            }
+
+            console.log("Raw appointments data:", data);
 
             // Map to event format
             const mapped = data.map(app => {
-                const start = new Date(app.appointment_date);
-                const duration = app.services?.duration_minutes || 60;
-                const end = new Date(start.getTime() + duration * 60000);
+                // Use explicit start_time if available, otherwise fallback to appointment_date (legacy)
+                let start = app.start_time ? new Date(app.start_time) : new Date(app.appointment_date);
+                let end = app.end_time ? new Date(app.end_time) : null;
+
+                // Fallback for end time calculation
+                if (!end) {
+                    const duration = app.services?.duration_minutes || 60;
+                    end = new Date(start.getTime() + duration * 60000);
+                }
 
                 return {
                     id: app.id,
-                    customer_name: `${app.customers?.first_name} ${app.customers?.last_name}`,
-                    service_name: app.services?.name,
-                    appointment_date: app.appointment_date,
-                    end_time: end.toISOString(),
-                    status: app.status
+                    customer_name: `${app.customers?.first_name || 'Cliente'} ${app.customers?.last_name || ''}`,
+                    service_name: app.services?.name || 'Servicio',
+                    start: start,
+                    end: end,
+                    status: app.status || 'pending'
                 };
             });
 
@@ -55,8 +70,8 @@ const CalendarPage = () => {
     const events = appointments?.data?.map(app => ({
         id: app.id,
         title: `${app.customer_name} - ${app.service_name}`,
-        start: new Date(app.appointment_date),
-        end: new Date(app.end_time),
+        start: app.start,
+        end: app.end,
         resource: app
     })) || [];
 
