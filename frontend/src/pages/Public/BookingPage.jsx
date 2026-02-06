@@ -248,14 +248,31 @@ const BookingPage = () => {
 
             <div className="max-w-3xl w-full bg-premium-card backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden min-h-[600px] flex flex-col relative z-10 animate-fade-in-up">
 
-                {/* Header */}
-                <div className="relative p-8 text-center border-b border-white/5">
-                    <div className="absolute inset-0 bg-gradient-to-b from-urban-accent/5 to-transparent opacity-50"></div>
-                    <div className="relative z-10">
-                        <h1 className="text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                            {business?.name?.replace(/([a-z])([A-Z])/g, '$1 $2').replace('PATAGONIAAUTOMATIZA', 'PATAGONIA AUTOMATIZA')}
-                        </h1>
-                        <p className="text-urban-accent text-sm mt-2 font-medium tracking-wide">EXPERIENCIA PREMIUM</p>
+                {/* Header with Cover Image */}
+                <div className="relative h-56 w-full overflow-hidden group">
+                    {/* Cover Image */}
+                    <div
+                        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
+                        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop')` }}
+                    ></div>
+
+                    {/* Dark Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 w-full p-8 text-center sm:text-left z-10 flex flex-col sm:flex-row items-end gap-6 animate-fade-in-up">
+                        {/* Optional Logo/Avatar Placeholder if we wanted */}
+                        {/* <div className="w-20 h-20 rounded-full bg-urban-accent border-4 border-black shadow-xl hidden sm:block"></div> */}
+
+                        <div>
+                            <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-widest text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                {business?.name?.replace(/([a-z])([A-Z])/g, '$1 $2').replace('PATAGONIAAUTOMATIZA', 'PATAGONIA AUTOMATIZA')}
+                            </h1>
+                            <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
+                                <span className="bg-urban-accent text-black text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Premium</span>
+                                <p className="text-gray-300 text-sm font-medium tracking-wide">Experiencia de Lujo</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
