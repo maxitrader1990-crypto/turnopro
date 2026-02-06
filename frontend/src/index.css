@@ -34,7 +34,7 @@
 
   /* Neon/Urban Button */
   .btn-urban {
-    @apply relative overflow-hidden bg-urban-accent text-black font-bold py-3 px-6 rounded-xl shadow-[0_0_15px_rgba(245, 158, 11, 0.3)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(245, 158, 11, 0.5)];
+    @apply relative overflow-hidden bg-urban-accent text-black font-bold py-3 px-6 rounded-xl shadow-glow-gold transition-all duration-300 hover:scale-[1.02] hover:shadow-glow-gold-strong;
   }
 
   .btn-urban::after {
@@ -54,6 +54,16 @@
   /* Input Fields Premium */
   .input-urban {
     @apply bg-premium-surface border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-urban-accent/50 focus:ring-1 focus:ring-urban-accent/50 transition-all placeholder-gray-600;
+  }
+}
+
+@layer utilities {
+  .shadow-glow-gold {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+  }
+
+  .shadow-glow-gold-strong {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
   }
 }
 
