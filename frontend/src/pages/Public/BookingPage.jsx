@@ -37,18 +37,28 @@ const BookingPage = () => {
                     .eq('subdomain', slug)
                     .maybeSingle();
 
-                // If not found by subdomain, try by ID (fallback)
+                // If not found by subdomain, check if slug is a valid UUID before trying to query by ID
                 if (!data && !error) {
-                    const { data: byId, error: errId } = await supabase
-                        .from('businesses')
-                        .select('*')
-                        .eq('id', slug)
-                        .maybeSingle();
-                    data = byId;
-                    error = errId;
+                    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+
+                    if (isUuid) {
+                        const { data: byId, error: errId } = await supabase
+                            .from('businesses')
+                            .select('*')
+                            .eq('id', slug)
+                            .maybeSingle();
+                        data = byId;
+                        error = errId;
+                    }
                 }
 
-                if (error || !data) {
+                if (error) {
+                    console.error('Supabase Error:', error);
+                    setLoadingError('Error técnico cargando negocio: ' + error.message);
+                    return;
+                }
+
+                if (!data) {
                     setLoadingError('Negocio no encontrado. Verifica el enlace.');
                     return;
                 }
