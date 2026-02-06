@@ -253,7 +253,7 @@ const BookingPage = () => {
                     <div className="absolute inset-0 bg-gradient-to-b from-urban-accent/5 to-transparent opacity-50"></div>
                     <div className="relative z-10">
                         <h1 className="text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                            {business?.name}
+                            {business?.name?.replace(/([a-z])([A-Z])/g, '$1 $2').replace('PATAGONIAAUTOMATIZA', 'PATAGONIA AUTOMATIZA')}
                         </h1>
                         <p className="text-urban-accent text-sm mt-2 font-medium tracking-wide">EXPERIENCIA PREMIUM</p>
                     </div>
@@ -348,7 +348,8 @@ const BookingPage = () => {
 
                             <input
                                 type="date"
-                                className="w-full p-4 border border-white/10 bg-black/20 rounded-xl mb-8 text-lg text-white font-medium focus:ring-1 focus:ring-urban-accent focus:border-urban-accent outline-none transition-all color-scheme-dark"
+                                className="w-full p-4 border border-white/10 bg-black/20 rounded-xl mb-8 text-lg text-white font-medium focus:ring-1 focus:ring-urban-accent focus:border-urban-accent outline-none transition-all [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                style={{ colorScheme: 'dark' }}
                                 min={new Date().toISOString().split('T')[0]}
                                 onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
                             />
