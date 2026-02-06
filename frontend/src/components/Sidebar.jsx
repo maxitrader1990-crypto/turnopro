@@ -9,7 +9,8 @@ import {
     LogOut,
     Trophy,
     Gift,
-    Settings
+    Settings,
+    TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import clsx from 'clsx';
@@ -19,8 +20,8 @@ const Sidebar = () => {
 
     const links = [
         { to: '/dashboard', label: 'Panel Principal', icon: LayoutDashboard },
+        { to: '/reports', label: 'Reportes', icon: TrendingUp },
         { to: '/calendar', label: 'Calendario', icon: Calendar },
-        { to: '/customers', label: 'Clientes', icon: Users },
         { to: '/employees', label: 'Empleados', icon: UserCog },
         { to: '/services', label: 'Servicios', icon: Scissors },
         // Only show Gamification if business has it enabled (UI logic later) 

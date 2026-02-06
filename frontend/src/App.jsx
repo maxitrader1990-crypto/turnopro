@@ -12,6 +12,7 @@ import Layout from './components/Layout';
 import OnboardingPage from './pages/Public/OnboardingPage';
 import BookingPage from './pages/Public/BookingPage';
 import CustomerPointsPage from './pages/Public/CustomerPointsPage';
+import Reports from './pages/Reports';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -41,6 +42,7 @@ function App() {
                             <Route path="/gamification" element={<Gamification />} />
                             <Route path="/customers" element={<Customers />} />
                             <Route path="/calendar" element={<CalendarPage />} />
+                            <Route path="/reports" element={<Reports />} />
                             <Route path="/settings" element={<Settings />} />
                             {/* Add more routes here */}
                         </Route>

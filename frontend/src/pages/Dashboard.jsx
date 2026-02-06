@@ -170,7 +170,7 @@ const Dashboard = () => {
                     value={isLoadingStats ? "..." : formatCurrency(stats?.revenue)}
                     icon={TrendingUp}
                     color="bg-urban-accent/20 text-urban-accent border border-urban-accent/30"
-                // No specific page for revenue yet
+                    onClick={() => navigate('/reports')}
                 />
             </div>
 
