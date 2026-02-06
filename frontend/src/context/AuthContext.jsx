@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const register = async (email, password, businessName, subdomain) => {
+    const register = async (email, password, businessName, subdomain, firstName, lastName) => {
         try {
             // 1. Sign Up in Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -141,7 +141,10 @@ export const AuthProvider = ({ children }) => {
                 await supabase.from('business_users').insert({
                     business_id: business.id,
                     email: email,
-                    role: 'owner'
+                    role: 'owner',
+                    first_name: firstName,
+                    last_name: lastName,
+                    full_name: `${firstName} ${lastName}`.trim()
                 });
             }
 

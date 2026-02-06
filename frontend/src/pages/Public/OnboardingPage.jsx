@@ -89,7 +89,8 @@ const OnboardingPage = () => {
                         first_name: data.firstName,
                         last_name: data.lastName,
                         role: 'owner',
-                        user_id: user.id
+                        user_id: user.id,
+                        full_name: `${data.firstName} ${data.lastName}`.trim()
                     });
 
                 if (uErr) throw uErr;
@@ -98,8 +99,8 @@ const OnboardingPage = () => {
 
             // Case B: Fresh Registration (Email/Pass)
             else {
-                // We pass businessName AND slug now
-                const result = await registerAuth(data.email, data.password, data.businessName, data.slug);
+                // We pass businessName, slug, firstName, AND lastName now
+                const result = await registerAuth(data.email, data.password, data.businessName, data.slug, data.firstName, data.lastName);
                 if (!result.success) throw new Error("Registration failed");
                 return result;
             }
