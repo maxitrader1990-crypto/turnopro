@@ -28,6 +28,69 @@ const Dashboard = () => {
         }
     }, [user, navigate]);
 
+    // Fetch Dashboard Stats
+    const { data: stats, isLoading: isLoadingStats } = useQuery({
+        queryKey: ['dashboardStats', user?.business_id],
+        queryFn: async () => {
+            if (!user?.business_id) return { appointments: 0, customers: 0, points: 0, revenue: 0 };
+
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+
+            // 1. Total Appointments
+            const { count: appointmentsCount, error: appError } = await supabase
+                .from('appointments')
+                .select('*', { count: 'exact', head: true })
+                .eq('business_id', user.business_id);
+
+            if (appError) console.error('Error fetching appointments count:', appError);
+
+            // 2. Active Customers
+            const { count: customersCount, error: custError } = await supabase
+                .from('customers')
+                .select('*', { count: 'exact', head: true })
+                .eq('business_id', user.business_id);
+
+            if (custError) console.error('Error fetching customers count:', custError);
+
+            // 3. Points (Sum)
+            const { data: customersData, error: pointsError } = await supabase
+                .from('customers')
+                .select('points')
+                .eq('business_id', user.business_id);
+
+            if (pointsError) console.error('Error fetching points:', pointsError);
+            const totalPoints = customersData?.reduce((sum, c) => sum + (c.points || 0), 0) || 0;
+
+            // 4. Monthly Revenue (Confirmed appointments in current month)
+            const { data: revenueData, error: revError } = await supabase
+                .from('appointments')
+                .select(`
+                     appointment_date,
+                     services (price)
+                 `)
+                .eq('business_id', user.business_id)
+                .eq('status', 'confirmed')
+                .gte('appointment_date', startOfMonth)
+                .lte('appointment_date', endOfMonth);
+
+            if (revError) console.error('Error fetching revenue:', revError);
+
+            const monthlyRevenue = revenueData?.reduce((sum, app) => {
+                return sum + (app.services?.price || 0);
+            }, 0) || 0;
+
+            return {
+                appointments: appointmentsCount || 0,
+                customers: customersCount || 0,
+                points: totalPoints,
+                revenue: monthlyRevenue
+            };
+        },
+        enabled: !!user?.business_id
+    });
+
     // Fetch Recent Appointments
     const { data: recentAppointments, isLoading } = useQuery({
         queryKey: ['recentAppointments', user?.business_id],
@@ -68,25 +131,25 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard
                     title="Citas Totales"
-                    value="1,240"
+                    value={isLoadingStats ? "..." : stats?.appointments}
                     icon={Calendar}
                     color="bg-blue-500"
                 />
                 <StatCard
                     title="Clientes Activos"
-                    value="850"
+                    value={isLoadingStats ? "..." : stats?.customers}
                     icon={Users}
                     color="bg-emerald-500"
                 />
                 <StatCard
                     title="Puntos Otorgados"
-                    value="45,200"
+                    value={isLoadingStats ? "..." : stats?.points?.toLocaleString()}
                     icon={Trophy}
                     color="bg-purple-500"
                 />
                 <StatCard
                     title="Ingresos Mensuales"
-                    value="$12,450"
+                    value={isLoadingStats ? "..." : `$${stats?.revenue?.toLocaleString()}`}
                     icon={TrendingUp}
                     color="bg-orange-500"
                 />
@@ -129,8 +192,8 @@ const Dashboard = () => {
                                         </td>
                                         <td className="px-4 py-4">
                                             <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${apt.status === 'confirmed' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                    apt.status === 'pending' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                        'bg-red-50 text-red-600 border-red-100'
+                                                apt.status === 'pending' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                    'bg-red-50 text-red-600 border-red-100'
                                                 }`}>
                                                 {apt.status === 'confirmed' ? 'Confirmado' :
                                                     apt.status === 'pending' ? 'Pendiente' : 'Cancelado'}
