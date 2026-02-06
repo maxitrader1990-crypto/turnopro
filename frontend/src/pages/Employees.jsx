@@ -118,6 +118,16 @@ const Employees = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* PRO-DEBUGGER: Temporary check */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 text-sm font-mono text-yellow-800">
+                    <p className="font-bold">🔍 Diagnóstico de Datos:</p>
+                    <ul className="list-disc pl-5 mt-1">
+                        <li>Usuario: {user?.email}</li>
+                        <li><strong>Business ID:</strong> {user?.business_id || '⚠️ NO VINCULADO'}</li>
+                        <li>Empleados Cargados: {employees?.length || 0}</li>
+                    </ul>
+                </div>
+
                 {isLoading ? <p>Cargando...</p> : employees?.map(emp => (
                     <div key={emp.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center hover:shadow-md transition-shadow relative group">
                         <button
