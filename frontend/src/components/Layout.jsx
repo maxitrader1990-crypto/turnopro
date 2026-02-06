@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 
 const Layout = () => {
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-premium-bg">
             <Sidebar />
             <div className="flex-1 ml-64 flex flex-col h-screen">
                 <div className="p-8 overflow-y-auto flex-1">
@@ -13,8 +13,8 @@ const Layout = () => {
                     </div>
                 </div>
                 {/* Developer Credit */}
-                <div className="py-2 text-center text-xs text-gray-400 border-t border-gray-100 bg-white">
-                    Desarrollado por <span className="font-semibold text-gray-500">Patagonia Automatiza</span>
+                <div className="py-2 text-center text-xs text-gray-500 border-t border-white/5 bg-premium-bg">
+                    Desarrollado por <span className="font-semibold text-urban-accent">Patagonia Automatiza</span>
                 </div>
             </div>
         </div>
