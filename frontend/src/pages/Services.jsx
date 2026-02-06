@@ -169,7 +169,7 @@ const Services = () => {
                         <button
                             onClick={() => seedMutation.mutate()}
                             disabled={seedMutation.isPending}
-                            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                            className="btn-success flex items-center gap-2"
                         >
                             <Wand2 size={18} />
                             {seedMutation.isPending ? 'Cargando...' : 'Cargar Default'}
@@ -177,7 +177,7 @@ const Services = () => {
                     )}
                     <button
                         onClick={openCreateModal}
-                        className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors shadow-lg"
+                        className="btn-primary flex items-center gap-2"
                     >
                         <Plus size={20} />
                         Nuevo Servicio
@@ -306,13 +306,13 @@ const Services = () => {
                         <button
                             type="button"
                             onClick={closeModal}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                            className="btn-secondary text-sm py-2 px-4"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 shadow-lg"
+                            className="btn-primary text-sm py-2 px-4"
                         >
                             {editingService ? 'Guardar Cambios' : 'Crear Servicio'}
                         </button>

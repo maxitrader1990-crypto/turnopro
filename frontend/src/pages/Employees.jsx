@@ -121,7 +121,7 @@ const Employees = () => {
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20 font-medium"
+                    className="btn-primary flex items-center gap-2"
                 >
                     <Plus size={20} />
                     Nuevo Empleado
@@ -159,7 +159,7 @@ const Employees = () => {
                         <div className="mt-auto flex gap-2 w-full">
                             <button
                                 onClick={() => setScheduleEmployee(emp)}
-                                className="flex-1 flex items-center justify-center gap-2 bg-gray-50 text-gray-700 py-2.5 rounded-lg hover:bg-gray-100 text-sm font-medium transition-colors border border-gray-200"
+                                className="flex-1 flex items-center justify-center gap-2 btn-secondary text-sm font-medium"
                             >
                                 <Clock size={16} /> Horarios
                             </button>
@@ -198,7 +198,7 @@ const Employees = () => {
                         <textarea {...register('bio')} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Experiencia..." />
                     </div>
                     <div className="flex justify-end pt-4 border-t border-gray-100">
-                        <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium shadow-lg transition-all">Guardar</button>
+                        <button type="submit" className="btn-primary px-6 py-2">Guardar</button>
                     </div>
                 </form>
             </Modal>
@@ -271,8 +271,8 @@ const ScheduleEditor = ({ initialSchedule, onSave, onCancel }) => {
             </div>
 
             <div className="flex justify-end pt-4 gap-2 border-t mt-4">
-                <button onClick={onCancel} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancelar</button>
-                <button onClick={() => onSave(schedule)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-lg">Guardar Horarios</button>
+                <button onClick={onCancel} className="btn-secondary px-4 py-2">Cancelar</button>
+                <button onClick={() => onSave(schedule)} className="btn-primary px-6 py-2">Guardar Horarios</button>
             </div>
         </div>
     );

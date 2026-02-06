@@ -87,7 +87,7 @@ const Gamification = () => {
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Base points awarded when a service has no specific points.</p>
                             </div>
-                            <button type="submit" className="w-full flex justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800">
+                            <button type="submit" className="w-full btn-primary flex justify-center items-center gap-2">
                                 <Save size={18} /> Save Settings
                             </button>
                         </form>
@@ -104,7 +104,7 @@ const Gamification = () => {
                             </div>
                             <button
                                 onClick={() => setIsRewardModalOpen(true)}
-                                className="text-sm bg-purple-50 text-purple-700 px-3 py-1.5 rounded-md font-medium hover:bg-purple-100"
+                                className="btn-secondary text-sm py-2 px-4 shadow-none border-purple-100 text-purple-700 hover:bg-purple-50"
                             >
                                 + New Reward
                             </button>
@@ -159,7 +159,7 @@ const Gamification = () => {
                         </select>
                     </div>
                     <div className="flex justify-end pt-4">
-                        <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+                        <button type="submit" className="btn-primary">
                             Create Reward
                         </button>
                     </div>

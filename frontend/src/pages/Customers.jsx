@@ -162,7 +162,7 @@ const Customers = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
                                             onClick={() => handleOpenRedeem(customer)}
-                                            className="text-white bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded-md text-xs font-bold shadow flex items-center gap-1 ml-auto"
+                                            className="btn-primary px-3 py-1 text-xs shadow-md flex items-center gap-1 ml-auto"
                                         >
                                             <Gift size={14} /> Canjear
                                         </button>
@@ -201,8 +201,8 @@ const Customers = () => {
                                             <button
                                                 onClick={() => redeemMutation.mutate({ customerId: selectedCustomer.id, reward })}
                                                 disabled={!canAfford || redeemMutation.isPending}
-                                                className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${canAfford
-                                                    ? 'bg-black text-white hover:bg-gray-800'
+                                                className={`px-3 py-1.5 rounded text-xs font-bold transition-all ${canAfford
+                                                    ? 'btn-primary'
                                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                             >
                                                 {redeemMutation.isPending ? '...' : 'Canjear'}

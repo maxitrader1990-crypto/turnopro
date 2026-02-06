@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Stats Card Component
 const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+    <div className="card-premium p-6 flex items-center justify-between hover:scale-[1.02] transition-transform duration-300">
         <div>
             <p className="text-sm font-medium text-gray-500">{title}</p>
             <h3 className="text-2xl font-bold mt-1 text-gray-900">{value}</h3>
@@ -65,7 +65,7 @@ const Dashboard = () => {
                 />
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="card-premium p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Citas Recientes</h3>
                 <div className="text-center py-10 text-gray-400">
                     Próximamente...
