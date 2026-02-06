@@ -103,13 +103,17 @@ const CustomerPointsPage = () => {
 
     if (step === 1) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
-                    <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-600">
+            <div className="min-h-screen bg-premium-bg flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                {/* Background Glow */}
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-urban-secondary/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-urban-accent/10 rounded-full blur-[120px]" />
+
+                <div className="bg-premium-card backdrop-blur-xl border border-white/5 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center relative z-10 animate-fade-in-up">
+                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-urban-accent border border-white/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                         <Trophy size={40} />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">{business?.name || 'Club de Puntos'}</h1>
-                    <p className="text-gray-500 mb-8">Ingresa tu email para ver tus puntos y premios disponibles.</p>
+                    <h1 className="text-2xl font-black text-white mb-2 uppercase tracking-wide">{business?.name || 'Club de Puntos'}</h1>
+                    <p className="text-gray-400 mb-8">Ingresa tu email para ver tus puntos y premios disponibles.</p>
 
                     <form onSubmit={handleSubmit(onSearch)} className="space-y-4">
                         <div>
@@ -117,67 +121,78 @@ const CustomerPointsPage = () => {
                                 {...register('email', { required: true })}
                                 type="email"
                                 placeholder="tu@email.com"
-                                className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                                className="w-full p-4 bg-black/20 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-1 focus:ring-urban-accent focus:border-urban-accent outline-none transition-all"
                             />
                         </div>
-                        <button type="submit" className="w-full bg-purple-600 text-white py-4 rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200">
+                        <button type="submit" className="w-full btn-urban text-lg shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_30px_rgba(245,158,11,0.4)]">
                             Ver mis Puntos
                         </button>
                     </form>
+                </div>
+
+                {/* Footer */}
+                <div className="mt-8 text-center opacity-30 hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white">Powered by <span className="font-bold text-urban-accent">Patagonia Automatiza</span></p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 pb-20">
-            <div className="max-w-md mx-auto space-y-6">
+        <div className="min-h-screen bg-premium-bg p-4 pb-20 relative overflow-hidden">
+            {/* Background Glow */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-urban-accent/5 to-transparent" />
+            </div>
+
+            <div className="max-w-md mx-auto space-y-6 relative z-10">
 
                 {/* Header Card */}
-                <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                <div className="bg-gradient-to-br from-urban-card-bg to-black border border-white/10 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-urban-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    <div className="absolute top-0 right-0 p-4 opacity-10 text-urban-accent">
                         <Trophy size={120} />
                     </div>
 
                     <div className="relative z-10">
-                        <p className="opacity-80 text-sm font-medium mb-1">Total Puntos</p>
-                        <h1 className="text-5xl font-bold mb-4">{customer?.points || 0}</h1>
-                        <div className="flex items-center gap-2 text-purple-100 text-sm bg-white/10 w-fit px-3 py-1 rounded-full">
-                            <span>Hola, {customer?.first_name}</span>
+                        <p className="text-urban-accent text-xs font-bold uppercase tracking-widest mb-2">Total Puntos</p>
+                        <h1 className="text-6xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 drop-shadow-sm">{customer?.points || 0}</h1>
+                        <div className="flex items-center gap-2 text-gray-300 text-sm bg-white/5 w-fit px-4 py-1.5 rounded-full border border-white/5">
+                            <span>Hola, <span className="text-white font-bold">{customer?.first_name}</span></span>
                         </div>
                     </div>
                 </div>
 
                 {/* Progress / Status */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-900 flex items-center gap-2"><Gift size={18} className="text-purple-500" /> Premios Disponibles</h3>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-lg">Catálogo</span>
+                <div className="bg-premium-card backdrop-blur-md p-6 rounded-2xl shadow-lg border border-white/5">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-white flex items-center gap-2 text-lg"><Gift size={20} className="text-urban-accent" /> Premios Disponibles</h3>
+                        <span className="text-[10px] font-bold text-black bg-urban-accent px-2 py-1 rounded-md uppercase tracking-wider">Catálogo</span>
                     </div>
 
                     <div className="space-y-4">
-                        {rewards?.length === 0 && <p className="text-center text-gray-400 py-4">No hay premios configurados aún.</p>}
+                        {rewards?.length === 0 && <p className="text-center text-gray-500 py-4 italic">No hay premios configurados aún.</p>}
 
                         {rewards?.map(reward => {
                             const canAfford = (customer?.points || 0) >= reward.points_cost;
                             const progress = Math.min(100, ((customer?.points || 0) / reward.points_cost) * 100);
 
                             return (
-                                <div key={reward.id} className="border border-gray-100 rounded-xl p-4 hover:border-purple-100 transition-colors bg-white relative overflow-hidden group">
+                                <div key={reward.id} className="border border-white/5 bg-white/5 rounded-xl p-5 hover:border-urban-accent/30 hover:bg-white/10 transition-all relative overflow-hidden group">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 className="font-bold text-gray-900">{reward.name}</h4>
-                                            <p className="text-xs text-gray-500">{reward.description}</p>
+                                            <h4 className="font-bold text-gray-100 text-lg">{reward.name}</h4>
+                                            <p className="text-xs text-gray-400 mt-1">{reward.description}</p>
                                         </div>
-                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${canAfford ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${canAfford ? 'bg-urban-accent text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-white/10 text-gray-500'}`}>
                                             {reward.points_cost} pts
                                         </span>
                                     </div>
 
                                     {/* Progress Bar */}
-                                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mb-3">
+                                    <div className="w-full bg-black/50 h-2 rounded-full overflow-hidden mb-4 border border-white/5">
                                         <div
-                                            className={`h-full rounded-full transition-all duration-500 ${canAfford ? 'bg-green-500' : 'bg-purple-300'}`}
+                                            className={`h-full rounded-full transition-all duration-1000 ${canAfford ? 'bg-urban-accent shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-gray-600'}`}
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>
@@ -185,13 +200,13 @@ const CustomerPointsPage = () => {
                                     {canAfford ? (
                                         <button
                                             onClick={() => handleRedeem(reward)}
-                                            className="w-full py-2 bg-green-500 text-white rounded-lg font-bold text-sm hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-green-200"
+                                            className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-sm hover:from-green-400 hover:to-green-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 transform hover:-translate-y-1"
                                         >
-                                            <MessageCircle size={16} /> Canjear por WhatsApp
+                                            <MessageCircle size={18} /> Canjear por WhatsApp
                                         </button>
                                     ) : (
-                                        <p className="text-xs text-center text-gray-400">
-                                            Te faltan {reward.points_cost - (customer?.points || 0)} pts
+                                        <p className="text-xs text-center text-gray-500 font-medium">
+                                            Te faltan <span className="text-gray-300">{reward.points_cost - (customer?.points || 0)}</span> pts para canjear
                                         </p>
                                     )}
                                 </div>
@@ -200,17 +215,16 @@ const CustomerPointsPage = () => {
                     </div>
                 </div>
 
-                <div className="text-center">
-                    <button onClick={() => setStep(1)} className="text-gray-400 text-sm hover:text-gray-600 underline">
+                <div className="text-center pt-4">
+                    <button onClick={() => setStep(1)} className="text-gray-500 text-sm hover:text-urban-accent transition-colors underline decoration-dotted">
                         Consultar otro email
                     </button>
                 </div>
 
-// ... imports
-                import InstallPrompt from '../../components/InstallPrompt';
-
-            // ... component code ...
-
+                {/* Footer */}
+                <div className="pt-8 pb-4 text-center opacity-30 hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white">Powered by <span className="font-bold text-urban-accent">Patagonia Automatiza</span></p>
+                </div>
             </div>
             <InstallPrompt />
         </div>

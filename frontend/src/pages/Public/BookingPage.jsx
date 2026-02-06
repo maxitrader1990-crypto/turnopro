@@ -469,6 +469,11 @@ const BookingPage = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Footer */}
+                <div className="pb-6 text-center opacity-30 hover:opacity-100 transition-opacity duration-500">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white">Powered by <span className="font-bold text-urban-accent">Patagonia Automatiza</span></p>
+                </div>
             </div>
 
             {/* Sticky WhatsApp Help Button */}
