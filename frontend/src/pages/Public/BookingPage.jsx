@@ -407,4 +407,45 @@ const BookingPage = () => {
     );
 };
 
-export default BookingPage;
+// Simple Error Boundary for the Booking Page
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error("BookingPage Crash:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="h-screen flex flex-col items-center justify-center p-6 text-center bg-gray-50">
+                    <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Algo salió mal</h1>
+                    <p className="text-gray-500 mb-4">No pudimos cargar la página de reservas.</p>
+                    <div className="bg-white p-4 rounded-lg shadow border border-red-100 max-w-md overflow-auto text-left">
+                        <p className="font-mono text-xs text-red-600 break-all">
+                            {this.state.error?.toString()}
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+export default function BookingPageWithBoundary() {
+    return (
+        <ErrorBoundary>
+            <BookingPage />
+        </ErrorBoundary>
+    );
+}
