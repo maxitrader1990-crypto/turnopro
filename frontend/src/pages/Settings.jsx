@@ -23,8 +23,8 @@ const Settings = () => {
                 <button
                     onClick={() => setActiveTab('guide')}
                     className={`pb-3 px-4 flex items-center gap-2 font-medium transition-colors border-b-2 ${activeTab === 'guide'
-                            ? 'border-blue-600 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     <BookOpen size={18} />
@@ -33,8 +33,8 @@ const Settings = () => {
                 <button
                     onClick={() => setActiveTab('general')}
                     className={`pb-3 px-4 flex items-center gap-2 font-medium transition-colors border-b-2 ${activeTab === 'general'
-                            ? 'border-blue-600 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     <SettingsIcon size={18} />
@@ -95,7 +95,7 @@ const Settings = () => {
                                             <span>TU PÁGINA DE RESERVAS</span>
                                         </div>
                                         <button
-                                            onClick={() => copyLink(window.location.origin + '/p/' + (user?.business_id || 'tu-negocio'))}
+                                            onClick={() => copyLink(window.location.origin + '/book/' + (user?.subdomain || user?.business_id))}
                                             className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors"
                                         >
                                             <Copy size={16} />

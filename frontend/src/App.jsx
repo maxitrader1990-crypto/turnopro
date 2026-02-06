@@ -28,7 +28,7 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/onboarding" element={<OnboardingPage />} />
-                    <Route path="/p/:slug" element={<BookingPage />} />
+                    <Route path="/book/:slug" element={<BookingPage />} />
 
                     <Route element={<ProtectedRoute />}>
                         <Route element={<Layout />}>
