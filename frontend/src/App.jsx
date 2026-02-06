@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import Layout from './components/Layout';
 import OnboardingPage from './pages/Public/OnboardingPage';
 import BookingPage from './pages/Public/BookingPage';
+import CustomerPointsPage from './pages/Public/CustomerPointsPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -29,6 +30,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/onboarding" element={<OnboardingPage />} />
                     <Route path="/book/:slug" element={<BookingPage />} />
+                    <Route path="/points/:slug" element={<CustomerPointsPage />} />
 
                     <Route element={<ProtectedRoute />}>
                         <Route element={<Layout />}>
