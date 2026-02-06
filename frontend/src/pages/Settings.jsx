@@ -1,30 +1,84 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, Settings as SettingsIcon, Store, Link as LinkIcon, Copy } from 'lucide-react';
+import { BookOpen, Settings as SettingsIcon, Store, Link as LinkIcon, Copy, Save, Loader } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../supabase';
+import toast from 'react-hot-toast';
 
 const Settings = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('guide'); // Default to guide per user request ("mini tutorial")
+    const [activeTab, setActiveTab] = useState('guide');
+    const queryClient = useQueryClient();
+
+    // 1. Fetch Business Data
+    const { data: business, isLoading } = useQuery({
+        queryKey: ['businessProfile', user?.business_id],
+        queryFn: async () => {
+            if (!user?.business_id) return null;
+            const { data, error } = await supabase
+                .from('businesses')
+                .select('*')
+                .eq('id', user.business_id)
+                .single();
+            if (error) throw error;
+            return data;
+        },
+        enabled: !!user?.business_id
+    });
+
+    // Form setup
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+
+    // Set form values when data loads
+    useEffect(() => {
+        if (business) {
+            setValue('name', business.name);
+            setValue('phone', business.phone);
+            setValue('subdomain', business.subdomain);
+        }
+    }, [business, setValue]);
+
+    // 2. Update Mutation
+    const updateMutation = useMutation({
+        mutationFn: async (formData) => {
+            const { error } = await supabase
+                .from('businesses')
+                .update({
+                    name: formData.name,
+                    phone: formData.phone,
+                    // subdomain: formData.subdomain // careful with changing this as it breaks links
+                })
+                .eq('id', user.business_id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['businessProfile']);
+            toast.success('¡Perfil de negocio actualizado!');
+        },
+        onError: (e) => toast.error('Error: ' + e.message)
+    });
 
     const copyLink = (link) => {
         navigator.clipboard.writeText(link);
-        alert('Enlace copiado al portapapeles');
+        toast.success('Enlace copiado');
     };
 
-    const businessLink = `https://turnopro.com/p/${user?.subdomain || 'tu-negocio'}`; // Hypothetical
+    const businessLink = business?.subdomain
+        ? `${window.location.origin}/book/${business.subdomain}`
+        : `${window.location.origin}/book/${user?.business_id}`;
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800">Configuración y Ayuda</h1>
+        <div className="space-y-6 animate-fade-in-up pb-10">
+            <h1 className="text-3xl font-bold text-white tracking-tight">Configuración y Ayuda</h1>
 
             {/* Tabs */}
-            <div className="flex space-x-4 border-b border-gray-200">
+            <div className="flex space-x-6 border-b border-white/10">
                 <button
                     onClick={() => setActiveTab('guide')}
-                    className={`pb-3 px-4 flex items-center gap-2 font-medium transition-colors border-b-2 ${activeTab === 'guide'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    className={`pb-4 px-2 flex items-center gap-2 font-medium transition-all text-sm uppercase tracking-wide border-b-2 ${activeTab === 'guide'
+                        ? 'border-urban-accent text-urban-accent'
+                        : 'border-transparent text-gray-500 hover:text-white'
                         }`}
                 >
                     <BookOpen size={18} />
@@ -32,126 +86,153 @@ const Settings = () => {
                 </button>
                 <button
                     onClick={() => setActiveTab('general')}
-                    className={`pb-3 px-4 flex items-center gap-2 font-medium transition-colors border-b-2 ${activeTab === 'general'
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    className={`pb-4 px-2 flex items-center gap-2 font-medium transition-all text-sm uppercase tracking-wide border-b-2 ${activeTab === 'general'
+                        ? 'border-urban-accent text-urban-accent'
+                        : 'border-transparent text-gray-500 hover:text-white'
                         }`}
                 >
                     <SettingsIcon size={18} />
-                    Configuración General
+                    Perfil del Negocio
                 </button>
             </div>
 
             {/* Content */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="card-premium p-8">
 
                 {/* GUIDE TAB */}
                 {activeTab === 'guide' && (
                     <div className="space-y-8 animate-in fade-in duration-300">
-                        <div className="prose max-w-none text-gray-600">
-                            <h2 className="text-xl font-semibold text-gray-800 mb-4">Bienvenido a TurnoPro</h2>
-                            <p className="mb-6">
-                                Sigue estos pasos para poner en marcha tu negocio rápidamente.
+                        <div className="prose max-w-none text-gray-300">
+                            <h2 className="text-2xl font-bold text-white mb-6">Bienvenido a TurnoPro</h2>
+                            <p className="mb-6 text-gray-400">
+                                Sigue estos pasos para poner en marcha tu negocio rápidamente y ofrecer una experiencia premium.
                             </p>
 
                             {/* Step 1: Services */}
-                            <div className="flex gap-4 mb-8">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">1</div>
+                            <div className="flex gap-5 mb-8 group">
+                                <div className="w-12 h-12 rounded-2xl bg-urban-accent/10 text-urban-accent flex items-center justify-center font-bold text-xl shrink-0 border border-urban-accent/20 group-hover:bg-urban-accent group-hover:text-black transition-all shadow-[0_0_15px_rgba(245,158,11,0.1)]">1</div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-800 text-lg">Crea tus Servicios</h3>
-                                    <p className="mb-2">Lo primero es definir qué ofreces a tus clientes.</p>
-                                    <ul className="list-disc list-inside space-y-1 mb-3">
-                                        <li>Ve a la pestaña <strong>Servicios</strong> en el menú lateral.</li>
-                                        <li>Haz clic en "Nuevo Servicio".</li>
-                                        <li>Define nombre, duración (minutos) y precio.</li>
+                                    <h3 className="font-bold text-white text-lg">Crea tus Servicios</h3>
+                                    <p className="mb-2 text-gray-400 text-sm">Define tu menú de servicios.</p>
+                                    <ul className="list-disc list-inside space-y-1 mb-3 text-sm text-gray-500">
+                                        <li>Ve a la pestaña <strong>Servicios</strong>.</li>
+                                        <li>Crea servicios con precio y duración.</li>
+                                        <li>Marca como "Destacado" o "Barba" para más puntos.</li>
                                     </ul>
                                 </div>
                             </div>
 
                             {/* Step 2: Employees */}
-                            <div className="flex gap-4 mb-8">
-                                <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold shrink-0">2</div>
+                            <div className="flex gap-5 mb-8 group">
+                                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xl shrink-0 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition-all shadow-[0_0_15px_rgba(59,130,246,0.1)]">2</div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-800 text-lg">Registra a tus Empleados</h3>
-                                    <p className="mb-2">¿Quiénes realizarán los servicios?</p>
-                                    <ul className="list-disc list-inside space-y-1 mb-3">
+                                    <h3 className="font-bold text-white text-lg">Registra tu Equipo</h3>
+                                    <p className="mb-2 text-gray-400 text-sm">¿Quiénes cortan el pelo?</p>
+                                    <ul className="list-disc list-inside space-y-1 mb-3 text-sm text-gray-500">
                                         <li>Ve a la pestaña <strong>Empleados</strong>.</li>
-                                        <li>Crea un perfil para cada profesional.</li>
-                                        <li>Asígnales los servicios que pueden realizar.</li>
-                                        <li>Edita su horario de disponibilidad.</li>
+                                        <li>Crea perfiles con fotos reales (muy importante para la UI).</li>
+                                        <li>Asigna sus turnos.</li>
                                     </ul>
                                 </div>
                             </div>
 
                             {/* Step 3: Link */}
-                            <div className="flex gap-4 mb-8">
-                                <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold shrink-0">3</div>
+                            <div className="flex gap-5 mb-8 group">
+                                <div className="w-12 h-12 rounded-2xl bg-green-500/10 text-green-400 flex items-center justify-center font-bold text-xl shrink-0 border border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition-all shadow-[0_0_15px_rgba(34,197,94,0.1)]">3</div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-800 text-lg">¡Comparte tu Enlace!</h3>
-                                    <p className="mb-2">Tus clientes ya pueden reservar turnos online.</p>
-                                    <div className="bg-gray-50 p-4 rounded-lg flex items-center justify-between border border-gray-200 mt-2">
-                                        <div className="flex items-center gap-2 text-blue-600 font-medium truncate">
+                                    <h3 className="font-bold text-white text-lg">¡Lanza tu Sitio!</h3>
+                                    <p className="mb-2 text-gray-400 text-sm">Comparte tu enlace exclusivo.</p>
+                                    <div className="bg-black/30 p-4 rounded-xl flex items-center justify-between border border-white/10 mt-3 group-hover:border-green-500/50 transition-colors">
+                                        <div className="flex items-center gap-3 text-green-400 font-medium truncate">
                                             <Store size={18} />
-                                            <span>TU PÁGINA DE RESERVAS</span>
+                                            <span className="truncate text-xs sm:text-sm font-mono">{businessLink}</span>
                                         </div>
                                         <button
-                                            onClick={() => copyLink(window.location.origin + '/book/' + (user?.subdomain || user?.business_id))}
-                                            className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+                                            onClick={() => copyLink(businessLink)}
+                                            className="flex items-center gap-2 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg transition-all"
                                         >
-                                            <Copy size={16} />
-                                            Copiar Enlace
+                                            <Copy size={14} />
+                                            Copiar
                                         </button>
                                     </div>
-                                    <p className="text-sm text-gray-400 mt-2">
-                                        * Este enlace es el que debes poner en tu Instagram o WhatsApp.
-                                    </p>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 )}
 
                 {/* SETTINGS TAB */}
                 {activeTab === 'general' && (
-                    <div className="animate-in fade-in duration-300">
-                        <div className="max-w-xl">
-                            <h3 className="text-lg font-semibold mb-4">Información del Negocio</h3>
+                    <div className="animate-in fade-in duration-300 max-w-2xl">
+                        {isLoading ? (
+                            <div className="text-center py-10"><Loader className="animate-spin mx-auto text-urban-accent" /></div>
+                        ) : (
+                            <form onSubmit={handleSubmit((data) => updateMutation.mutate(data))} className="space-y-6">
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                    <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">Información Pública del Negocio</h3>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Negocio</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                                        value="Patagonia Automatiza (Demo)"
-                                        disabled
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">Contacta a soporte para cambiar esto.</p>
-                                </div>
+                                    <div className="space-y-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre del Negocio</label>
+                                            <input
+                                                {...register('name', { required: "El nombre es obligatorio" })}
+                                                type="text"
+                                                className="input-urban w-full"
+                                                placeholder="Ej. Barbería King"
+                                            />
+                                            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
+                                            <p className="text-xs text-gray-500 mt-2">Este nombre aparecerá en la portada de tu página de reservas.</p>
+                                        </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email del Propietario</label>
-                                    <input
-                                        type="email"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                                        value={user?.email || ''}
-                                        disabled
-                                    />
-                                </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Teléfono / WhatsApp</label>
+                                            <input
+                                                {...register('phone')}
+                                                type="text"
+                                                className="input-urban w-full"
+                                                placeholder="Ej. 5492804..."
+                                            />
+                                            <p className="text-xs text-gray-500 mt-2">Número para que tus clientes te contacten.</p>
+                                        </div>
 
-                                <div className="pt-4">
-                                    <h4 className="text-sm font-medium text-gray-900 mb-2">Preferencias</h4>
-                                    <div className="flex items-center gap-3">
-                                        <input type="checkbox" id="notif" className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" defaultChecked />
-                                        <label htmlFor="notif" className="text-sm text-gray-700">Recibir notificaciones por email al tener nuevas reservas</label>
+                                        <div className="opacity-50 pointer-events-none grayscale">
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Subdominio (Enlace)</label>
+                                            <input
+                                                {...register('subdomain')}
+                                                type="text"
+                                                className="input-urban w-full bg-black/40 border-dashed"
+                                                readOnly
+                                            />
+                                            <p className="text-xs text-yellow-600 mt-2">⚠ Contacta a soporte para cambiar tu enlace permanente.</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+
+                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                    <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">Detalles de Cuenta</h3>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email del Propietario</label>
+                                        <div className="flex items-center gap-3 px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-gray-400">
+                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                            {user?.email}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-end pt-4">
+                                    <button
+                                        type="submit"
+                                        disabled={updateMutation.isPending}
+                                        className="btn-urban flex items-center gap-2 px-8 py-3 text-base"
+                                    >
+                                        {updateMutation.isPending ? <Loader size={20} className="animate-spin" /> : <Save size={20} />}
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 )}
-
             </div>
         </div>
     );
