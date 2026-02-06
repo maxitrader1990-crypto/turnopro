@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
+import toast from 'react-hot-toast';
 import Modal from '../components/Modal';
 
 const localizer = momentLocalizer(moment);
@@ -79,6 +80,28 @@ const CalendarPage = () => {
         setSelectedEvent(event);
     };
 
+    const queryClient = useQueryClient();
+
+    const completeMutation = useMutation({
+        mutationFn: async (appointmentId) => {
+            const { error } = await supabase
+                .from('appointments')
+                .update({ status: 'completed' })
+                .eq('id', appointmentId);
+
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            toast.success('Cita completada con éxito');
+            queryClient.invalidateQueries(['appointments']);
+            setSelectedEvent(null);
+        },
+        onError: (error) => {
+            console.error('Error completing appointment:', error);
+            toast.error('Error al completar la cita');
+        }
+    });
+
     return (
         <div className="h-[80vh] bg-white p-4 rounded-xl shadow-sm">
             <BigCalendar
@@ -93,30 +116,40 @@ const CalendarPage = () => {
             />
 
             {/* Appointment Detail Modal */}
-            <Modal isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title="Appointment Details">
+            <Modal isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title="Detalles del Turno">
                 {selectedEvent && (
                     <div className="space-y-4">
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Customer</p>
+                            <p className="text-sm font-medium text-gray-500">Cliente</p>
                             <p className="text-lg font-bold">{selectedEvent.resource.customer_name}</p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Service</p>
+                            <p className="text-sm font-medium text-gray-500">Servicio</p>
                             <p>{selectedEvent.resource.service_name}</p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Time</p>
+                            <p className="text-sm font-medium text-gray-500">Horario</p>
                             <p>{moment(selectedEvent.start).format('LLL')} - {moment(selectedEvent.end).format('LT')}</p>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Status</p>
-                            <p className="capitalize">{selectedEvent.resource.status}</p>
+                            <p className="text-sm font-medium text-gray-500">Estado</p>
+                            <p className="capitalize">
+                                {selectedEvent.resource.status === 'completed' ? 'Completado' :
+                                    selectedEvent.resource.status === 'pending' ? 'Pendiente' : selectedEvent.resource.status}
+                            </p>
                         </div>
 
-                        {selectedEvent.resource.status !== 'completed' && (
+                        {selectedEvent.resource.status === 'pending' && (
                             <div className="pt-4">
-                                <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
-                                    Complete Appointment (Needs API hook)
+                                <button
+                                    onClick={() => completeMutation.mutate(selectedEvent.id)}
+                                    disabled={completeMutation.isPending}
+                                    className={`w-full py-2 rounded-lg text-white font-bold transition-colors ${completeMutation.isPending
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700 shadow-md'
+                                        }`}
+                                >
+                                    {completeMutation.isPending ? 'Procesando...' : 'Marcar como Completado'}
                                 </button>
                             </div>
                         )}

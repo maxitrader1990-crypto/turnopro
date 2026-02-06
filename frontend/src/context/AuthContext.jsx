@@ -146,6 +146,26 @@ export const AuthProvider = ({ children }) => {
                     last_name: lastName,
                     full_name: `${firstName} ${lastName}`.trim()
                 });
+
+                // 4. Seed Default Data (Services & Rewards)
+                const defaultServices = [
+                    { name: 'Corte Clásico', price: 10000, duration_minutes: 30, points_reward: 10, description: 'Corte de cabello tradicional con tijera o máquina.' },
+                    { name: 'Corte + Barba', price: 15000, duration_minutes: 45, points_reward: 20, description: 'Servicio completo de corte y perfilado de barba.' },
+                    { name: 'Color / Mechas', price: 25000, duration_minutes: 90, points_reward: 50, description: 'Coloración profesional.' }
+                ];
+
+                await supabase.from('services').insert(
+                    defaultServices.map(s => ({ ...s, business_id: business.id }))
+                );
+
+                const defaultRewards = [
+                    { name: 'Corte Gratis', points_cost: 500, description: 'Canjea tus puntos por un corte sin cargo.' },
+                    { name: '10% OFF', points_cost: 100, description: 'Descuento en tu próxima visita.' }
+                ];
+
+                await supabase.from('rewards').insert(
+                    defaultRewards.map(r => ({ ...r, business_id: business.id }))
+                );
             }
 
             // Check if session was created immediately (Email Confirm Disabled)
