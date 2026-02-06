@@ -5,8 +5,11 @@ import { Users, Calendar, Trophy, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Stats Card Component
-const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className="card-premium p-6 flex items-center justify-between hover:scale-[1.02] transition-transform duration-300">
+const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
+    <div
+        onClick={onClick}
+        className={`card-premium p-6 flex items-center justify-between hover:scale-[1.02] transition-transform duration-300 ${onClick ? 'cursor-pointer' : ''}`}
+    >
         <div>
             <p className="text-sm font-medium text-gray-500">{title}</p>
             <h3 className="text-2xl font-bold mt-1 text-gray-900">{value}</h3>
@@ -29,9 +32,10 @@ const Dashboard = () => {
     }, [user, navigate]);
 
     // Fetch Dashboard Stats
-    const { data: stats, isLoading: isLoadingStats } = useQuery({
+    const { data: stats, isLoading: isLoadingStats, isError: isStatsError } = useQuery({
         queryKey: ['dashboardStats', user?.business_id],
         queryFn: async () => {
+            console.log("Fetching stats for business:", user?.business_id);
             if (!user?.business_id) return { appointments: 0, customers: 0, points: 0, revenue: 0 };
 
             const now = new Date();
@@ -92,7 +96,7 @@ const Dashboard = () => {
     });
 
     // Fetch Recent Appointments
-    const { data: recentAppointments, isLoading } = useQuery({
+    const { data: recentAppointments, isLoading, isError } = useQuery({
         queryKey: ['recentAppointments', user?.business_id],
         queryFn: async () => {
             if (!user?.business_id) return [];
@@ -118,8 +122,16 @@ const Dashboard = () => {
         enabled: !!user?.business_id
     });
 
-    // Example query (we might need a dashboard endpoint later, but for now lets just show static/user data)
-    // TODO: Create /api/admin/dashboard-stats endpoint
+    // Helper to safe format
+    const formatCurrency = (val) => {
+        if (val === undefined || val === null) return "$0";
+        return `$${val.toLocaleString()}`;
+    };
+
+    const formatNumber = (val) => {
+        if (val === undefined || val === null) return "0";
+        return val.toLocaleString();
+    };
 
     return (
         <div>
@@ -131,27 +143,31 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard
                     title="Citas Totales"
-                    value={isLoadingStats ? "..." : stats?.appointments}
+                    value={isLoadingStats ? "..." : formatNumber(stats?.appointments)}
                     icon={Calendar}
                     color="bg-blue-500"
+                    onClick={() => navigate('/calendar')}
                 />
                 <StatCard
                     title="Clientes Activos"
-                    value={isLoadingStats ? "..." : stats?.customers}
+                    value={isLoadingStats ? "..." : formatNumber(stats?.customers)}
                     icon={Users}
                     color="bg-emerald-500"
+                    onClick={() => navigate('/customers')}
                 />
                 <StatCard
                     title="Puntos Otorgados"
-                    value={isLoadingStats ? "..." : stats?.points?.toLocaleString()}
+                    value={isLoadingStats ? "..." : formatNumber(stats?.points)}
                     icon={Trophy}
                     color="bg-purple-500"
+                    onClick={() => navigate('/gamification')}
                 />
                 <StatCard
                     title="Ingresos Mensuales"
-                    value={isLoadingStats ? "..." : `$${stats?.revenue?.toLocaleString()}`}
+                    value={isLoadingStats ? "..." : formatCurrency(stats?.revenue)}
                     icon={TrendingUp}
                     color="bg-orange-500"
+                // No specific page for revenue yet
                 />
             </div>
 
