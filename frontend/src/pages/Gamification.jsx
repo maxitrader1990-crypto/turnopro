@@ -63,6 +63,53 @@ const Gamification = () => {
         onError: (err) => toast.error('Error: ' + err.message)
     });
 
+    const loadStrategyMutation = useMutation({
+        mutationFn: async () => {
+            const recommendedRewards = [
+                {
+                    business_id: user.business_id,
+                    name: '🥤 Gaseosa/Cerveza de Cortesía',
+                    description: '¡Refresca tu corte! Canjeable en tu próxima visita.',
+                    points_cost: 100,
+                    type: 'product',
+                    is_active: true
+                },
+                {
+                    business_id: user.business_id,
+                    name: '💈 20% OFF en Barba',
+                    description: 'Dale estilo a tu barba con un descuento exclusivo.',
+                    points_cost: 300,
+                    type: 'service',
+                    is_active: true
+                },
+                {
+                    business_id: user.business_id,
+                    name: '✂️ Corte Clásico GRATIS',
+                    description: 'Tu fidelidad tiene premio. Un corte completo sin cargo.',
+                    points_cost: 1000,
+                    type: 'service',
+                    is_active: true
+                },
+                {
+                    business_id: user.business_id,
+                    name: '👑 Experiencia King (Completa)',
+                    description: 'Corte + Barba + Masaje + Bebida Premium.',
+                    points_cost: 1500,
+                    type: 'experience',
+                    is_active: true
+                }
+            ];
+
+            const { error } = await supabase.from('rewards').insert(recommendedRewards);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['rewards']);
+            toast.success('¡Estrategia Cargada con Éxito!');
+        },
+        onError: (err) => toast.error('Error: ' + err.message)
+    });
+
     return (
         <div className="animate-fade-in-up">
             <h1 className="text-3xl font-bold text-white mb-6 uppercase tracking-widest drop-shadow-md flex items-center gap-3">
@@ -162,10 +209,22 @@ const Gamification = () => {
                         </div>
                         <div className="divide-y divide-white/5">
                             {rewards?.data?.length === 0 && (
-                                <div className="p-12 text-center">
-                                    <Gift className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
-                                    <p className="text-gray-500 text-lg">No hay recompensas configuradas.</p>
-                                    <p className="text-gray-600 text-sm">Crea la primera para motivar a tus clientes.</p>
+                                <div className="p-12 text-center flex flex-col items-center justify-center animate-fade-in">
+                                    <div className="w-20 h-20 bg-urban-accent/10 rounded-full flex items-center justify-center mb-6 animate-pulse-slow">
+                                        <Gift className="w-10 h-10 text-urban-accent" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white mb-2">¡Tu Catálogo está vacío!</h3>
+                                    <p className="text-gray-400 max-w-md mx-auto mb-8">
+                                        Invoca nuestra Estrategia Ganadora: 4 premios diseñados para fidelizar desde la primera visita (incluye la Gaseosa Gratis).
+                                    </p>
+                                    <button
+                                        onClick={() => loadStrategyMutation.mutate()}
+                                        disabled={loadStrategyMutation.isPending}
+                                        className="btn-urban relative overflow-hidden group px-8 py-3 w-fit mx-auto"
+                                    >
+                                        {loadStrategyMutation.isPending ? 'Conjurando Estrategia...' : '✨ Cargar Estrategia Recomendada'}
+                                        <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
+                                    </button>
                                 </div>
                             )}
                             {rewards?.data?.map(reward => (
