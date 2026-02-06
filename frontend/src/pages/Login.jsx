@@ -19,31 +19,36 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+            {/* Background Effects */}
+            <div className="absolute inset-0 bg-premium-bg z-0"></div>
+            <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-urban-secondary/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+            <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-urban-accent/10 rounded-full blur-[100px] animate-pulse-slow delay-100"></div>
+
+            <div className="max-w-md w-full card-premium p-8 relative z-10 animate-fade-in-up border-white/10">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900">Bienvenido</h2>
-                    <p className="text-gray-500 mt-2">Inicia sesión en tu cuenta</p>
+                    <h2 className="text-4xl font-bold text-white tracking-tight drop-shadow-lg">Bienvenido</h2>
+                    <p className="text-gray-400 mt-2 text-lg">Inicia sesión en tu cuenta</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-1 ml-1">Email</label>
                         <input
                             type="email"
                             required
-                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2.5 border outline-none transition-all"
+                            className="w-full input-urban"
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             placeholder="nombre@ejemplo.com"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-1 ml-1">Contraseña</label>
                         <input
                             type="password"
                             required
-                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2.5 border outline-none transition-all"
+                            className="w-full input-urban"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             placeholder="••••••••"
@@ -52,24 +57,24 @@ const Login = () => {
 
                     <button
                         type="submit"
-                        className="w-full btn-primary flex justify-center items-center"
+                        className="w-full btn-urban flex justify-center items-center mt-4"
                     >
                         Iniciar Sesión con Email
                     </button>
                 </form>
 
-                <div className="relative my-6">
+                <div className="relative my-8">
                     <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200" />
+                        <div className="w-full border-t border-white/10" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-white text-gray-500">O continúa con</span>
+                        <span className="px-3 bg-premium-surface/50 backdrop-blur-sm text-gray-400 rounded-full">O continúa con</span>
                     </div>
                 </div>
 
                 <button
                     onClick={() => loginWithGoogle()}
-                    className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-white/10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-all hover:scale-[1.02] shadow-lg"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path
@@ -92,10 +97,10 @@ const Login = () => {
                     Google
                 </button>
 
-                <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
+                <div className="mt-8 text-center">
+                    <p className="text-sm text-gray-500">
                         ¿No tienes cuenta?{' '}
-                        <Link to="/onboarding" className="font-medium text-blue-600 hover:text-blue-500">
+                        <Link to="/onboarding" className="font-medium text-urban-accent hover:text-urban-accent/80 transition-colors uppercase tracking-wide text-xs">
                             Regístrate gratis
                         </Link>
                     </p>

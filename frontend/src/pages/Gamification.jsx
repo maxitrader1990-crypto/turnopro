@@ -64,68 +64,77 @@ const Gamification = () => {
     });
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Gamification Engine</h1>
+        <div className="animate-fade-in-up">
+            <h1 className="text-3xl font-bold text-white mb-6 uppercase tracking-widest drop-shadow-md flex items-center gap-3">
+                <Trophy className="text-urban-accent animate-pulse-slow" /> Gamification Engine
+            </h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Configuration Panel */}
                 <div className="lg:col-span-1 space-y-6">
-                    {/* Share Link Card */}
-                    <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl shadow-lg p-6 text-white">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Share2 className="text-purple-200" />
-                            <h2 className="text-lg font-bold">Portal de Clientes</h2>
-                        </div>
-                        <p className="text-purple-100 text-sm mb-4">
-                            Comparte este enlace con tus clientes para que consulten sus puntos.
-                        </p>
+                    {/* Share Link Card - VIP Pass Style */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-urban-secondary to-purple-900 p-6 text-white shadow-[0_0_20px_rgba(139,92,246,0.5)] border border-white/20 group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-urban-accent/20 rounded-full blur-xl -ml-5 -mb-5 pointer-events-none"></div>
 
-                        <div className="bg-white/10 p-3 rounded-lg flex items-center justify-between gap-2 mb-3 border border-white/20">
-                            <code className="text-xs truncate font-mono text-purple-50">
-                                {`${window.location.origin}/points/${user?.subdomain || user?.business_id}`}
-                            </code>
-                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Share2 className="text-white/80" size={20} />
+                                <h2 className="text-xl font-bold tracking-wide">PORTAL DE CLIENTES</h2>
+                            </div>
+                            <p className="text-purple-100 text-sm mb-6 font-light">
+                                Tu enlace exclusivo para que los clientes consulten su nivel y puntos.
+                            </p>
 
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(`${window.location.origin}/points/${user?.subdomain || user?.business_id}`);
-                                    toast.success('Enlace copiado!');
-                                }}
-                                className="flex-1 bg-white text-purple-700 py-2 rounded-lg font-bold text-sm hover:bg-purple-50 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <Copy size={16} /> Copiar
-                            </button>
-                            <a
-                                href={`/points/${user?.subdomain || user?.business_id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="px-3 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors flex items-center justify-center"
-                            >
-                                <ExternalLink size={18} />
-                            </a>
+                            <div className="bg-black/30 backdrop-blur-md p-4 rounded-xl flex items-center justify-between gap-3 mb-4 border border-white/10 group-hover:border-urban-accent/50 transition-colors">
+                                <code className="text-xs truncate font-mono text-urban-accent">
+                                    {`${window.location.origin}/points/${user?.subdomain || user?.business_id}`}
+                                </code>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`${window.location.origin}/points/${user?.subdomain || user?.business_id}`);
+                                        toast.success('Enlace copiado!');
+                                    }}
+                                    className="flex-1 bg-white text-urban-secondary py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-all flex items-center justify-center gap-2 shadow-lg"
+                                >
+                                    <Copy size={16} /> Copiar
+                                </button>
+                                <a
+                                    href={`/points/${user?.subdomain || user?.business_id}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-4 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-all flex items-center justify-center backdrop-blur-sm"
+                                >
+                                    <ExternalLink size={18} />
+                                </a>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Trophy className="text-yellow-500" />
-                            <h2 className="text-lg font-bold text-gray-900">Rules & Points</h2>
+                    <div className="card-premium p-6">
+                        <div className="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                <span className="w-2 h-6 bg-urban-accent rounded-sm"></span>
+                                Reglas del Juego
+                            </h2>
                         </div>
-                        <form onSubmit={submitConfig((data) => updateConfigMutation.mutate(data))} className="space-y-4">
+                        <form onSubmit={submitConfig((data) => updateConfigMutation.mutate(data))} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Points per Visit</label>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Puntos por Visita</label>
                                 <input
                                     type="number"
                                     {...registerConfig('points_per_visit', { valueAsNumber: true })}
-                                    className="mt-1 block w-full p-2 border rounded-md"
-                                    placeholder="e.g. 100"
+                                    className="w-full input-urban"
+                                    placeholder="e.j. 100"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Base points awarded when a service has no specific points.</p>
+                                <p className="text-xs text-gray-500 mt-2">Puntos base otorgados automáticamente al finalizar un servicio.</p>
                             </div>
-                            <button type="submit" className="w-full btn-primary flex justify-center items-center gap-2">
-                                <Save size={18} /> Save Settings
+                            <button type="submit" className="w-full btn-urban flex justify-center items-center gap-2">
+                                <Save size={18} /> Guardar Configuración
                             </button>
                         </form>
                     </div>
@@ -133,31 +142,49 @@ const Gamification = () => {
 
                 {/* Rewards Panel */}
                 <div className="lg:col-span-2">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <Gift className="text-purple-500" />
-                                <h2 className="text-lg font-bold text-gray-900">Rewards Catalog</h2>
+                    <div className="card-premium h-full border border-white/10">
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-500/20 rounded-lg">
+                                    <Gift className="text-purple-400" size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">Catálogo de Recompensas</h2>
+                                    <p className="text-xs text-gray-400">Gestiona los premios canjeables</p>
+                                </div>
                             </div>
                             <button
                                 onClick={() => setIsRewardModalOpen(true)}
-                                className="btn-secondary text-sm py-2 px-4 shadow-none border-purple-100 text-purple-700 hover:bg-purple-50"
+                                className="btn-ghost-dark text-sm py-2 px-4 shadow-none text-urban-accent border border-urban-accent/30 hover:bg-urban-accent/10"
                             >
-                                + New Reward
+                                + Nuevo Premio
                             </button>
                         </div>
-                        <div className="divide-y divide-gray-100">
-                            {rewards?.data?.length === 0 && <p className="p-6 text-gray-500 text-center">No rewards configured.</p>}
+                        <div className="divide-y divide-white/5">
+                            {rewards?.data?.length === 0 && (
+                                <div className="p-12 text-center">
+                                    <Gift className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
+                                    <p className="text-gray-500 text-lg">No hay recompensas configuradas.</p>
+                                    <p className="text-gray-600 text-sm">Crea la primera para motivar a tus clientes.</p>
+                                </div>
+                            )}
                             {rewards?.data?.map(reward => (
-                                <div key={reward.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{reward.name}</p>
-                                        <p className="text-sm text-gray-500">{reward.description} • Stock: {reward.stock ?? '∞'}</p>
+                                <div key={reward.id} className="p-6 flex justify-between items-center hover:bg-white/5 transition-all group">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-gray-800 to-black border border-white/10 flex items-center justify-center text-xl shadow-inner">
+                                            {reward.type === 'product' ? '🎁' : reward.type === 'experience' ? '✨' : '✂️'}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-gray-200 text-lg group-hover:text-urban-accent transition-colors">{reward.name}</p>
+                                            <p className="text-sm text-gray-500 mt-1">{reward.description}</p>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold">
-                                            {reward.points_cost} pts
-                                        </span>
+                                    <div className="text-right">
+                                        <div className="inline-flex items-center gap-1 bg-urban-accent/10 border border-urban-accent/20 px-3 py-1 rounded-full">
+                                            <span className="text-urban-accent font-bold">{reward.points_cost}</span>
+                                            <span className="text-urban-accent/70 text-xs font-bold uppercase">XP</span>
+                                        </div>
+                                        <p className="text-xs text-gray-600 mt-2 font-mono">Stock: {reward.stock ?? '∞'}</p>
                                     </div>
                                 </div>
                             ))}
@@ -167,37 +194,37 @@ const Gamification = () => {
             </div>
 
             {/* Create Reward Modal */}
-            <Modal isOpen={isRewardModalOpen} onClose={() => setIsRewardModalOpen(false)} title="Create Reward">
+            <Modal isOpen={isRewardModalOpen} onClose={() => setIsRewardModalOpen(false)} title="Crear Recompensa Legendaria">
                 <form onSubmit={submitReward((data) => createRewardMutation.mutate(data))} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Name</label>
-                        <input {...registerReward('name', { required: true })} className="mt-1 block w-full p-2 border rounded-md" />
+                        <label className="block text-sm font-medium text-gray-700">Nombre del Premio</label>
+                        <input {...registerReward('name', { required: true })} className="mt-1 block w-full p-2 border rounded-md" placeholder="ej. Corte Gratis VIP" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <input {...registerReward('description')} className="mt-1 block w-full p-2 border rounded-md" />
+                        <label className="block text-sm font-medium text-gray-700">Descripción Épica</label>
+                        <input {...registerReward('description')} className="mt-1 block w-full p-2 border rounded-md" placeholder="Describe lo increíble que es este premio..." />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Points Cost</label>
+                            <label className="block text-sm font-medium text-gray-700">Costo en XP (Puntos)</label>
                             <input type="number" {...registerReward('points_cost', { required: true, valueAsNumber: true })} className="mt-1 block w-full p-2 border rounded-md" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Stock (Optional)</label>
-                            <input type="number" {...registerReward('stock', { valueAsNumber: true })} className="mt-1 block w-full p-2 border rounded-md" placeholder="Leave empty for infinite" />
+                            <label className="block text-sm font-medium text-gray-700">Stock (Opcional)</label>
+                            <input type="number" {...registerReward('stock', { valueAsNumber: true })} className="mt-1 block w-full p-2 border rounded-md" placeholder="Vacío para infinito" />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Type</label>
+                        <label className="block text-sm font-medium text-gray-700">Tipo de Recompensa</label>
                         <select {...registerReward('type')} className="mt-1 block w-full p-2 border rounded-md">
-                            <option value="service">Free Service</option>
-                            <option value="product">Product</option>
-                            <option value="experience">Experience</option>
+                            <option value="service">Servicio Gratis</option>
+                            <option value="product">Producto</option>
+                            <option value="experience">Experiencia VIP</option>
                         </select>
                     </div>
                     <div className="flex justify-end pt-4">
-                        <button type="submit" className="btn-primary">
-                            Create Reward
+                        <button type="submit" className="btn-urban w-full">
+                            Invocar Recompensa
                         </button>
                     </div>
                 </form>

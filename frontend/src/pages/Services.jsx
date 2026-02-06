@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
-import { Plus, Edit2, Trash2, Wand2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Wand2, Scissors, Clock, DollarSign, Star } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -158,18 +158,20 @@ const Services = () => {
     };
 
     return (
-        <div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="animate-fade-in-up">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Servicios</h1>
-                    <p className="text-gray-500 text-sm">Gestiona el catálogo de servicios de tu barbería.</p>
+                    <h1 className="text-3xl font-bold text-white uppercase tracking-widest drop-shadow-md flex items-center gap-3">
+                        <Scissors className="text-urban-accent animate-pulse-slow" /> Book-the-Look
+                    </h1>
+                    <p className="text-gray-400 text-sm font-light mt-1">Gestiona tu catálogo visual de servicios exclusivos.</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     {services?.length === 0 && (
                         <button
                             onClick={() => seedMutation.mutate()}
                             disabled={seedMutation.isPending}
-                            className="btn-success flex items-center gap-2"
+                            className="btn-ghost-dark text-green-400 border-green-500/30 hover:bg-green-500/10 flex items-center gap-2"
                         >
                             <Wand2 size={18} />
                             {seedMutation.isPending ? 'Cargando...' : 'Cargar Default'}
@@ -177,83 +179,95 @@ const Services = () => {
                     )}
                     <button
                         onClick={openCreateModal}
-                        className="btn-primary flex items-center gap-2"
+                        className="btn-urban flex items-center gap-2 shadow-lg shadow-urban-accent/20"
                     >
                         <Plus size={20} />
-                        Nuevo Servicio
+                        Nuevo Estilo
                     </button>
                 </div>
             </div>
 
-            {/* List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duración</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puntos</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {isLoading ? (
-                            <tr><td colSpan="5" className="px-6 py-10 text-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div></td></tr>
-                        ) : services?.length === 0 ? (
-                            <tr><td colSpan="5" className="px-6 py-10 text-center text-gray-500">No hay servicios. ¡Carga los default o crea uno nuevo!</td></tr>
-                        ) : (
-                            services?.map((service) => (
-                                <tr key={service.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="font-bold text-gray-900">{service.name}</div>
-                                        <div className="text-xs text-gray-500 bg-gray-100 inline-block px-2 py-0.5 rounded-full mt-1">{service.category || 'General'}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {/* Grid Layout for Book-the-Look Catalog */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {isLoading ? (
+                    <div className="col-span-full py-20 text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-urban-accent mx-auto"></div>
+                    </div>
+                ) : services?.length === 0 ? (
+                    <div className="col-span-full card-premium p-12 text-center border-dashed border-2 border-white/10">
+                        <Scissors className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
+                        <p className="text-gray-400 text-lg">Tu catálogo está vacío.</p>
+                        <p className="text-gray-500 text-sm">Empieza a definir tu estilo agregando servicios.</p>
+                    </div>
+                ) : (
+                    services?.map((service) => (
+                        <div key={service.id} className="card-premium group hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between overflow-hidden relative">
+                            {/* Decorative glow */}
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-urban-accent/5 rounded-full blur-xl -mr-10 -mt-10 pointer-events-none group-hover:bg-urban-accent/10 transition-colors"></div>
+
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/5 text-gray-300 border border-white/10">
+                                        {service.category || 'General'}
+                                    </span>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={() => openEditModal(service)} className="text-blue-400 hover:text-white transition-colors">
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button onClick={() => handleDelete(service.id)} className="text-red-400 hover:text-white transition-colors">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-urban-accent transition-colors">{service.name}</h3>
+                                <p className="text-gray-400 text-sm line-clamp-3 mb-4 font-light leading-relaxed">{service.description || 'Sin descripción disponible.'}</p>
+
+                                <div className="space-y-2 mt-4">
+                                    <div className="flex items-center text-sm text-gray-300 gap-2">
+                                        <Clock size={16} className="text-urban-secondary" />
                                         {service.duration_minutes} min
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                        ${service.price}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-600 font-medium">
-                                        +{service.points_reward} pts
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onClick={() => openEditModal(service)} className="text-blue-600 hover:text-blue-900 mr-4 p-2 hover:bg-blue-50 rounded-full transition-colors">
-                                            <Edit2 size={18} />
-                                        </button>
-                                        <button onClick={() => handleDelete(service.id)} className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-full transition-colors">
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                                    </div>
+                                    <div className="flex items-center text-sm text-gray-300 gap-2">
+                                        <DollarSign size={16} className="text-green-400" />
+                                        <span className="font-bold text-white text-lg">${service.price}</span>
+                                    </div>
+                                    <div className="flex items-center text-xs text-urban-accent gap-1 mt-2 font-mono">
+                                        <Star size={12} fill="currentColor" />
+                                        Recompensa: +{service.points_reward} XP
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bottom aesthetic line */}
+                            <div className="h-1 w-full bg-gradient-to-r from-transparent via-urban-accent/50 to-transparent opacity-50"></div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* Modal Form */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                title={editingService ? 'Editar Servicio' : 'Nuevo Servicio'}
+                title={editingService ? 'Editar Estilo' : 'Nuevo Estilo'}
             >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Nombre del Servicio</label>
                         <input
                             {...register('name', { required: true })}
-                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black p-2.5 border"
-                            placeholder="ej. Corte Clásico"
+                            className="mt-1 block w-full input-urban text-black"
+                            placeholder="ej. Corte Fade Urbano"
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Descripción</label>
                         <textarea
                             {...register('description')}
-                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black p-2.5 border"
+                            className="mt-1 block w-full input-urban text-black"
                             rows="3"
+                            placeholder="Detalles del estilo..."
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -263,7 +277,7 @@ const Services = () => {
                                 <input
                                     type="number"
                                     {...register('duration_minutes', { required: true, valueAsNumber: true })}
-                                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black p-2.5 border pl-9"
+                                    className="block w-full input-urban pl-9 text-black"
                                 />
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <span className="text-gray-500 sm:text-sm">⏱️</span>
@@ -273,22 +287,22 @@ const Services = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Precio ($)</label>
                             <div className="relative mt-1">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 z-10">$</span>
                                 <input
                                     type="number"
                                     step="0.01"
                                     {...register('price', { required: true, valueAsNumber: true })}
-                                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black p-2.5 border pl-7"
+                                    className="block w-full input-urban pl-7 text-black"
                                 />
                             </div>
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Puntos de Recompensa</label>
+                        <label className="block text-sm font-medium text-gray-700">Puntos de Recompensa (XP)</label>
                         <input
                             type="number"
                             {...register('points_reward', { valueAsNumber: true })}
-                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black p-2.5 border"
+                            className="mt-1 block w-full input-urban text-black"
                             placeholder="ej. 50"
                         />
                         <p className="text-xs text-gray-500 mt-1">Puntos que gana el cliente al completar este servicio.</p>
@@ -297,24 +311,24 @@ const Services = () => {
                         <label className="block text-sm font-medium text-gray-700">Categoría</label>
                         <input
                             {...register('category')}
-                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-black focus:ring-black p-2.5 border"
+                            className="mt-1 block w-full input-urban text-black"
                             placeholder="ej. Cabello, Barba, Spa"
                         />
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
+                    <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-100">
                         <button
                             type="button"
                             onClick={closeModal}
-                            className="btn-secondary text-sm py-2 px-4"
+                            className="btn-ghost-dark text-gray-500 hover:text-gray-700 border-transparent"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="btn-primary text-sm py-2 px-4"
+                            className="btn-urban"
                         >
-                            {editingService ? 'Guardar Cambios' : 'Crear Servicio'}
+                            {editingService ? 'Guardar Cambios' : 'Crear Estilo'}
                         </button>
                     </div>
                 </form>

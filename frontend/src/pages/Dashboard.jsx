@@ -8,14 +8,14 @@ import { useNavigate } from 'react-router-dom';
 const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
     <div
         onClick={onClick}
-        className={`card-premium p-6 flex items-center justify-between hover:scale-[1.02] transition-transform duration-300 ${onClick ? 'cursor-pointer' : ''}`}
+        className={`card-premium p-6 flex items-center justify-between hover:scale-[1.02] transition-all duration-300 ${onClick ? 'cursor-pointer hover:shadow-lg hover:shadow-urban-accent/10' : ''}`}
     >
         <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <h3 className="text-2xl font-bold mt-1 text-gray-900">{value}</h3>
+            <p className="text-sm font-medium text-gray-400">{title}</p>
+            <h3 className="text-3xl font-bold mt-1 text-white tracking-tight">{value}</h3>
         </div>
-        <div className={`p-3 rounded-lg ${color}`}>
-            <Icon size={24} className="text-white" />
+        <div className={`p-3 rounded-xl ${color}`}>
+            <Icon size={24} className="currentColor" />
         </div>
     </div>
 );
@@ -134,10 +134,13 @@ const Dashboard = () => {
     };
 
     return (
-        <div>
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Panel Principal</h1>
-                <p className="text-gray-500 mt-1">Bienvenido de nuevo, {user?.email}</p>
+        <div className="animate-fade-in-up">
+            <div className="mb-8 flex items-end justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Panel Principal</h1>
+                    <p className="text-gray-400 mt-2">Bienvenido de nuevo, <span className="text-urban-accent">{user?.email}</span></p>
+                </div>
+                <div className="w-32 h-1 bg-gradient-to-r from-urban-accent to-transparent rounded-full"></div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -145,71 +148,74 @@ const Dashboard = () => {
                     title="Citas Totales"
                     value={isLoadingStats ? "..." : formatNumber(stats?.appointments)}
                     icon={Calendar}
-                    color="bg-blue-500"
+                    color="bg-blue-500/20 text-blue-400 border border-blue-500/30"
                     onClick={() => navigate('/calendar')}
                 />
                 <StatCard
                     title="Clientes Activos"
                     value={isLoadingStats ? "..." : formatNumber(stats?.customers)}
                     icon={Users}
-                    color="bg-emerald-500"
+                    color="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                     onClick={() => navigate('/customers')}
                 />
                 <StatCard
                     title="Puntos Otorgados"
                     value={isLoadingStats ? "..." : formatNumber(stats?.points)}
                     icon={Trophy}
-                    color="bg-purple-500"
+                    color="bg-urban-secondary/20 text-urban-secondary border border-urban-secondary/30"
                     onClick={() => navigate('/gamification')}
                 />
                 <StatCard
                     title="Ingresos Mensuales"
                     value={isLoadingStats ? "..." : formatCurrency(stats?.revenue)}
                     icon={TrendingUp}
-                    color="bg-orange-500"
+                    color="bg-urban-accent/20 text-urban-accent border border-urban-accent/30"
                 // No specific page for revenue yet
                 />
             </div>
 
-            <div className="card-premium p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">Citas Recientes</h3>
+            <div className="card-premium p-8 border-t-4 border-t-urban-accent">
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold text-white">Citas Recientes en Tiempo Real</h3>
+                    <button onClick={() => navigate('/calendar')} className="text-sm text-urban-accent hover:underline">Ver todas</button>
+                </div>
 
                 {isLoading ? (
-                    <div className="text-center py-10 text-gray-400">Cargando...</div>
+                    <div className="text-center py-10 text-gray-500 animate-pulse">Cargando datos en vivo...</div>
                 ) : recentAppointments?.length > 0 ? (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+                            <thead className="text-xs uppercase text-gray-400 border-b border-white/10">
                                 <tr>
-                                    <th className="px-4 py-3 rounded-l-lg">Cliente</th>
-                                    <th className="px-4 py-3">Servicio</th>
-                                    <th className="px-4 py-3">Profesional</th>
-                                    <th className="px-4 py-3">Fecha</th>
-                                    <th className="px-4 py-3 rounded-r-lg">Estado</th>
+                                    <th className="px-4 py-4">Cliente</th>
+                                    <th className="px-4 py-4">Servicio</th>
+                                    <th className="px-4 py-4">Profesional</th>
+                                    <th className="px-4 py-4">Fecha</th>
+                                    <th className="px-4 py-4">Estado</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-white/5">
                                 {recentAppointments.map((apt) => (
-                                    <tr key={apt.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-4 py-4 font-medium text-gray-900">
+                                    <tr key={apt.id} className="hover:bg-white/5 transition-colors group">
+                                        <td className="px-4 py-4 font-medium text-white group-hover:text-urban-accent transition-colors">
                                             {apt.customers?.first_name} {apt.customers?.last_name}
-                                            <div className="text-gray-400 text-xs font-normal">{apt.customers?.email}</div>
+                                            <div className="text-gray-500 text-xs font-normal">{apt.customers?.email}</div>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-semibold border border-blue-100">
+                                            <span className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-semibold border border-blue-500/20">
                                                 {apt.services?.name}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 text-gray-600">
+                                        <td className="px-4 py-4 text-gray-400">
                                             {apt.employees ? apt.employees.first_name : 'Cualquiera'}
                                         </td>
-                                        <td className="px-4 py-4 text-gray-600">
-                                            {apt.appointment_date} <span className="text-gray-400 mx-1">•</span> {apt.start_time?.slice(11, 16)}
+                                        <td className="px-4 py-4 text-gray-400 font-mono text-xs">
+                                            {apt.appointment_date} <span className="text-gray-600 mx-1">|</span> {apt.start_time?.slice(11, 16)}
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${apt.status === 'confirmed' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                apt.status === 'pending' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                    'bg-red-50 text-red-600 border-red-100'
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${apt.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                apt.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                    'bg-red-500/10 text-red-400 border-red-500/20'
                                                 }`}>
                                                 {apt.status === 'confirmed' ? 'Confirmado' :
                                                     apt.status === 'pending' ? 'Pendiente' : 'Cancelado'}
@@ -221,8 +227,9 @@ const Dashboard = () => {
                         </table>
                     </div>
                 ) : (
-                    <div className="text-center py-10 text-gray-400 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                        No hay citas recientes.
+                    <div className="text-center py-16 text-gray-500 rounded-xl border border-dashed border-white/10">
+                        <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                        No hay citas recientes registradas.
                     </div>
                 )}
             </div>
