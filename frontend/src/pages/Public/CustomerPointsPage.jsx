@@ -178,37 +178,85 @@ const CustomerPointsPage = () => {
                             const progress = Math.min(100, ((customer?.points || 0) / reward.points_cost) * 100);
 
                             return (
-                                <div key={reward.id} className="border border-white/5 bg-white/5 rounded-xl p-5 hover:border-urban-accent/30 hover:bg-white/10 transition-all relative overflow-hidden group">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h4 className="font-bold text-gray-100 text-lg">{reward.name}</h4>
-                                            <p className="text-xs text-gray-400 mt-1">{reward.description}</p>
-                                        </div>
-                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap ${canAfford ? 'bg-urban-accent text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-white/10 text-gray-500'}`}>
-                                            {reward.points_cost} pts
-                                        </span>
-                                    </div>
-
-                                    {/* Progress Bar */}
-                                    <div className="w-full bg-black/50 h-2 rounded-full overflow-hidden mb-4 border border-white/5">
-                                        <div
-                                            className={`h-full rounded-full transition-all duration-1000 ${canAfford ? 'bg-urban-accent shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-gray-600'}`}
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    </div>
-
-                                    {canAfford ? (
-                                        <button
-                                            onClick={() => handleRedeem(reward)}
-                                            className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-sm hover:from-green-400 hover:to-green-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 transform hover:-translate-y-1"
-                                        >
-                                            <MessageCircle size={18} /> Canjear por WhatsApp
-                                        </button>
-                                    ) : (
-                                        <p className="text-xs text-center text-gray-500 font-medium">
-                                            Te faltan <span className="text-gray-300">{reward.points_cost - (customer?.points || 0)}</span> pts para canjear
-                                        </p>
+                                <div
+                                    key={reward.id}
+                                    className={`relative overflow-hidden rounded-2xl p-6 transition-all duration-500 border group
+                                        ${canAfford
+                                            ? 'bg-gradient-to-br from-urban-accent/10 to-black border-urban-accent/50 shadow-[0_0_30px_rgba(245,158,11,0.15)]'
+                                            : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                        }
+                                    `}
+                                >
+                                    {/* Shimmer Effect for Unlockable Rewards */}
+                                    {canAfford && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] animate-shimmer pointer-events-none" />
                                     )}
+
+                                    <div className="flex items-start gap-5 relative z-10">
+                                        {/* Icon Container */}
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-white/10
+                                            ${canAfford ? 'bg-gradient-to-br from-urban-accent to-yellow-600 text-black shadow-urban-accent/30' : 'bg-black/40 text-gray-600 grayscale'}
+                                        `}>
+                                            {reward.type === 'product' ? '🥤' : reward.type === 'experience' ? '👑' : '✂️'}
+                                        </div>
+
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className={`font-black text-xl uppercase italic tracking-wide ${canAfford ? 'text-white' : 'text-gray-400'}`}>
+                                                    {reward.name}
+                                                </h4>
+                                                <div className={`px-3 py-1 rounded-lg text-sm font-black border
+                                                    ${canAfford
+                                                        ? 'bg-urban-accent text-black border-urban-accent shadow-glow-gold'
+                                                        : 'bg-black/30 text-gray-500 border-white/10'}
+                                                `}>
+                                                    {reward.points_cost} PTS
+                                                </div>
+                                            </div>
+
+                                            <p className="text-sm text-gray-400 mt-2 font-medium leading-relaxed">{reward.description}</p>
+
+                                            {/* Progress Section */}
+                                            <div className="mt-5">
+                                                <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider mb-2">
+                                                    <span className={canAfford ? 'text-urban-accent' : 'text-gray-500'}>
+                                                        {canAfford ? '¡Objetivo Alcanzado!' : 'Progreso'}
+                                                    </span>
+                                                    <span className="text-white">{Math.floor(progress)}%</span>
+                                                </div>
+
+                                                <div className="w-full bg-black/60 h-3 rounded-full overflow-hidden border border-white/5 relative">
+                                                    {/* Animated Striped Bar */}
+                                                    <div
+                                                        className={`h-full rounded-full relative overflow-hidden transition-all duration-1000 ${canAfford ? 'bg-urban-accent' : 'bg-gray-700'}`}
+                                                        style={{ width: `${progress}%` }}
+                                                    >
+                                                        {canAfford && (
+                                                            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9InN0cmlwZXMiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBMODAgMEgwIEwwIDQwWiIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iMC4yIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3N0cmlwZXMpIi8+PC9zdmc+')] animate-slide-bg opacity-30"></div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {!canAfford && (
+                                                    <p className="text-xs text-center mt-2 text-gray-500 font-mono">
+                                                        Faltan <span className="text-gray-300 font-bold">{reward.points_cost - (customer?.points || 0)} pts</span> para desbloquear
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Action Button */}
+                                            {canAfford && (
+                                                <button
+                                                    onClick={() => handleRedeem(reward)}
+                                                    className="mt-6 w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold text-sm hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-all flex items-center justify-center gap-2 group/btn relative overflow-hidden"
+                                                >
+                                                    <div className="absolute inset-0 bg-white/20 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                                                    <MessageCircle size={20} className="animate-bounce-slow" />
+                                                    <span className="relative z-10 uppercase tracking-wide">Canjear Ahora</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             );
                         })}
