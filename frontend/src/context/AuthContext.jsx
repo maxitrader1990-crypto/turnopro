@@ -44,15 +44,17 @@ export const AuthProvider = ({ children }) => {
             console.log("Fetching profile for:", authUser.email);
             console.log("Step 1: Checking Super Admin...");
 
-            // Check if user is Super Admin
-            const { data: superAdmin } = await supabase
-                .from('super_admins')
-                .select('id')
-                .eq('id', authUser.id)
-                .maybeSingle();
+            // Check if user is Super Admin via RPC (bypasses RLS)
+            console.log("Step 1: Calling check_is_super_admin RPC...");
+            const { data: isSuperAdminData, error: superAdminError } = await supabase
+                .rpc('check_is_super_admin');
 
-            console.log("Step 1 Result: Is Super Admin?", !!superAdmin);
-            const isSuperAdmin = !!superAdmin;
+            if (superAdminError) console.error("RPC Error:", superAdminError);
+
+            console.log("Step 1 Result: Is Super Admin?", isSuperAdminData);
+            const isSuperAdmin = !!isSuperAdminData;
+
+
 
             // 1. Try 'business_users' (Admin/Owners)
             console.log("Step 2: Checking business_users...");
