@@ -13,10 +13,10 @@ import { es } from 'date-fns/locale';
 // --- LOOKBOOK DATA (Simulated for Demo) ---
 const GLAMOUR_SHOTS = {
     cuts: [
+        "https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop", // Barbershop atmosphere
         "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=2070&auto=format&fit=crop", // Modern Fade
         "https://images.unsplash.com/photo-1593702295094-aec8c569ed0f?q=80&w=2070&auto=format&fit=crop", // Beard Trim
         "https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop", // Scissor Cut
-        "https://images.unsplash.com/photo-1599351431202-0e6713407779?q=80&w=688&auto=format&fit=crop", // Side profile
         "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=2070&auto=format&fit=crop"  // Styling
     ]
 };
