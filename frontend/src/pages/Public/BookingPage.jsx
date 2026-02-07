@@ -28,6 +28,7 @@ const BookingPage = () => {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState(null);
+    const [bookingData, setBookingData] = useState(null); // Restore bookingData
     const [viewingPortfolio, setViewingPortfolio] = useState(null); // New state for portfolio modal
     const [theme_id, setThemeId] = useState(null);
 
