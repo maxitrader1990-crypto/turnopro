@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
             const { data: superAdmin } = await supabase
                 .from('super_admins')
                 .select('id')
-                .eq('id', session.user.id)
+                .eq('id', authUser.id)
                 .maybeSingle();
 
             const isSuperAdmin = !!superAdmin;
