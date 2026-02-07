@@ -39,7 +39,7 @@ const Billing = () => {
                         </div>
                     </div>
 
-                    {sub ? (
+                    {sub && sub.current_period_end ? (
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 text-gray-300">
                                 <Clock size={20} className="text-urban-accent" />
@@ -54,7 +54,9 @@ const Billing = () => {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-gray-400">No se encontró información de suscripción.</p>
+                        <div className="space-y-4">
+                            <p className="text-gray-400">No hay un periodo activo.</p>
+                        </div>
                     )}
 
                     {isExpired && (
