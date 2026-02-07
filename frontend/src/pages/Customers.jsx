@@ -187,7 +187,7 @@ const Customers = () => {
                             ) : filteredList.length === 0 ? (
                                 <tr><td colSpan="5" className="px-6 py-10 text-center text-gray-500 italic">No se encontraron clientes.</td></tr>
                             ) : (
-                                filteredList.map((customer) => (
+                                (filteredList || []).map((customer) => (
                                     <tr key={customer.id} className="hover:bg-white/5 transition-colors group">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
@@ -311,7 +311,7 @@ const Customers = () => {
                                 ) : history?.length === 0 ? (
                                     <div className="text-center py-10 text-gray-400">Sin visitas previas.</div>
                                 ) : (
-                                    history.map((appt) => (
+                                    (history || []).map((appt) => (
                                         <div key={appt.id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex justify-between items-center">
                                             <div>
                                                 <p className="font-bold text-gray-800">{appt.services?.name || 'Servicio'}</p>
@@ -353,7 +353,7 @@ const Customers = () => {
                             <h3 className="font-bold text-white">Recompensas Disponibles</h3>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                 {rewards?.length === 0 && <p className="text-sm text-gray-500">No hay recompensas configuradas.</p>}
-                                {rewards?.map(reward => {
+                                {(rewards || []).map(reward => {
                                     const canAfford = selectedCustomer.points >= reward.points_cost;
                                     return (
                                         <div key={reward.id} className={`p-3 border rounded-lg flex justify-between items-center ${canAfford ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 opacity-50'}`}>
