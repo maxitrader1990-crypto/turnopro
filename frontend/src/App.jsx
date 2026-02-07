@@ -20,6 +20,13 @@ const ProtectedRoute = () => {
     if (!user) {
         return <Navigate to="/login" replace />;
     }
+
+    // Safety check: specific to this app logic
+    // If user is logged in but has no business profile, redirect to onboarding
+    if (!user.business_id) {
+        return <Navigate to="/onboarding" replace />;
+    }
+
     return <Outlet />;
 };
 
