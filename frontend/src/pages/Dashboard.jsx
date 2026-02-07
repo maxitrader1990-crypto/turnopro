@@ -134,7 +134,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="animate-fade-in-up">
+        <div className="">
             <div className="mb-8 flex items-end justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">Panel Principal</h1>
