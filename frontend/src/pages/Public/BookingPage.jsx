@@ -28,7 +28,8 @@ const BookingPage = () => {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState(null);
-    const [bookingData, setBookingData] = useState(null);
+    const [viewingPortfolio, setViewingPortfolio] = useState(null); // New state for portfolio modal
+    const [theme_id, setThemeId] = useState(null);
 
     // Business Fetch (by ID or Subdomain)
     const { data: business, isLoading: loadingBusiness } = useQuery({
@@ -304,11 +305,61 @@ const BookingPage = () => {
                                                     <img key={i} src={img} alt="Cut" className="w-8 h-8 rounded-full border border-black object-cover" />
                                                 ))}
                                             </div>
-                                            <p className="text-[10px] text-gray-500 mt-1">Ver portafolio →</p>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setViewingPortfolio(employee);
+                                                }}
+                                                className="text-[10px] text-gray-500 mt-1 hover:text-urban-accent transition-colors z-20 relative"
+                                            >
+                                                Ver portafolio →
+                                            </button>
                                         </div>
                                     </button>
                                 ))}
                             </div>
+
+                            {/* PORTFOLIO MODAL */}
+                            {viewingPortfolio && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                                    <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl animate-in zoom-in-95 duration-200 custom-scrollbar">
+                                        <button
+                                            onClick={() => setViewingPortfolio(null)}
+                                            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                        <h3 className="text-2xl font-bold text-white mb-2">Portafolio de {viewingPortfolio.first_name}</h3>
+                                        <p className="text-gray-400 mb-6 text-sm">Explora los mejores trabajos realizados por nuestro Master Barber.</p>
+
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                            {/* Using GLAMOUR_SHOTS for now, but ideally this would come from employee.portfolio */}
+                                            {GLAMOUR_SHOTS.cuts.map((img, i) => (
+                                                <div key={i} className="group relative rounded-lg overflow-hidden aspect-square border border-white/5 hover:border-urban-accent/50 transition-colors">
+                                                    <img
+                                                        src={img}
+                                                        alt={`Portfolio ${i}`}
+                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="mt-6 flex justify-end">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedEmployee(viewingPortfolio);
+                                                    setViewingPortfolio(null);
+                                                    setStep(3);
+                                                }}
+                                                className="btn-urban px-6 py-2 text-sm"
+                                            >
+                                                Reservar con {viewingPortfolio.first_name}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* DEMO LOOKBOOK SHOWCASE (Static for now to show impact) */}
                             <div className="mt-8 pt-8 border-t border-white/10">
