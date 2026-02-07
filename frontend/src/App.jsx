@@ -14,9 +14,17 @@ import BookingPage from './pages/Public/BookingPage';
 import CustomerPointsPage from './pages/Public/CustomerPointsPage';
 import Reports from './pages/Reports';
 
+import BarberLayout from './pages/Barber/BarberLayout';
+import BarberDashboard from './pages/Barber/Dashboard';
+import BarberPortfolio from './pages/Barber/Portfolio';
+
+import Billing from './pages/Billing';
+
 // Protected Route Wrapper
 const ProtectedRoute = () => {
     const { user } = useAuth();
+    const location = useLocation();
+
     if (!user) {
         return <Navigate to="/login" replace />;
     }
@@ -27,6 +35,28 @@ const ProtectedRoute = () => {
         return <Navigate to="/onboarding" replace />;
     }
 
+    // Redirect Barbers to their Dashboard
+    if (user.role === 'barber') {
+        return <Navigate to="/barber/dashboard" replace />;
+    }
+
+    // Subscription Check
+    if (user.role === 'admin' && user.subscription) {
+        const isExpired = user.subscription.status === 'expired' || user.subscription.daysRemaining <= 0;
+        // Allow access only to Billing if expired
+        if (isExpired && location.pathname !== '/settings/billing') {
+            return <Navigate to="/settings/billing" replace />;
+        }
+    }
+
+    return <Outlet />;
+};
+
+// Barber Route Wrapper
+const BarberRoute = () => {
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" replace />;
+    if (user.role !== 'barber') return <Navigate to="/dashboard" replace />;
     return <Outlet />;
 };
 
@@ -40,6 +70,7 @@ function App() {
                     <Route path="/book/:slug" element={<BookingPage />} />
                     <Route path="/points/:slug" element={<CustomerPointsPage />} />
 
+                    {/* Admin Routes */}
                     <Route element={<ProtectedRoute />}>
                         <Route element={<Layout />}>
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -51,7 +82,16 @@ function App() {
                             <Route path="/calendar" element={<CalendarPage />} />
                             <Route path="/reports" element={<Reports />} />
                             <Route path="/settings" element={<Settings />} />
-                            {/* Add more routes here */}
+                            <Route path="/settings/billing" element={<Billing />} />
+                        </Route>
+                    </Route>
+
+                    {/* Barber Routes */}
+                    <Route element={<BarberRoute />}>
+                        <Route path="/barber" element={<BarberLayout />}>
+                            <Route index element={<Navigate to="/barber/dashboard" replace />} />
+                            <Route path="dashboard" element={<BarberDashboard />} />
+                            <Route path="portfolio" element={<BarberPortfolio />} />
                         </Route>
                     </Route>
                 </Routes>

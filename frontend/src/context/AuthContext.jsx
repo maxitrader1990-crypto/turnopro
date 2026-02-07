@@ -41,20 +41,86 @@ export const AuthProvider = ({ children }) => {
 
     const fetchBusinessProfile = async (authUser) => {
         try {
-            // Find business link
-            // Try 'business_users' (our custom table)
+            console.log("Fetching profile for:", authUser.email);
+
+            // 1. Try 'business_users' (Admin/Owners)
             const { data: profile, error } = await supabase
                 .from('business_users')
                 .select('*')
                 .eq('email', authUser.email)
-                .single();
+                .maybeSingle();
+
+            if (error) console.error("Error fetching business_user:", error);
+            if (profile) console.log("Found business profile:", profile);
 
             if (profile) {
-                setUser({ ...authUser, ...profile }); // Merge auth data with business data
+                // 1. Fetch Subscription
+                const { data: subscription, error: subError } = await supabase
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('business_id', profile.business_id)
+                    .maybeSingle();
+
+                if (subError) console.error("Error fetching subscription:", subError);
+
+                let subStatus = 'inactive';
+                let daysRemaining = 0;
+
+                if (subscription) {
+                    const now = new Date();
+                    const end = new Date(subscription.current_period_end);
+                    const diffTime = end - now;
+                    daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (subscription.status === 'active' && daysRemaining > 0) {
+                        subStatus = 'active';
+                    } else if (subscription.status === 'past_due' || daysRemaining <= 0) {
+                        subStatus = 'expired';
+                    }
+                } else {
+                    // FIX: If no subscription exists for an existing business, give them a courtesy trial or mark specifically
+                    console.log("No subscription found for existing business. Defaulting to Inactive.");
+                }
+
+                setUser({
+                    ...authUser,
+                    ...profile,
+                    role: 'admin',
+                    subscription: {
+                        ...subscription,
+                        status: subStatus,
+                        daysRemaining
+                    }
+                });
             } else {
-                // If no profile found, maybe they are just a raw auth user or need onboarding
-                console.log('No business profile found for', authUser.email);
-                setUser(authUser);
+                // 2. Try 'employees' (Barbers/Staff) linked by user_id or email
+                console.log("No business_user found. Checking employees...");
+                const { data: employee, error: empError } = await supabase
+                    .from('employees')
+                    .select('*')
+                    .or(`user_id.eq.${authUser.id},email.eq.${authUser.email}`)
+                    .maybeSingle();
+
+                if (empError) console.error("Error fetching employee:", empError);
+
+                if (employee) {
+                    // If linked by email but not user_id yet, update user_id
+                    if (!employee.user_id) {
+                        await supabase.from('employees').update({ user_id: authUser.id }).eq('id', employee.id);
+                    }
+
+                    setUser({
+                        ...authUser,
+                        business_id: employee.business_id,
+                        role: 'barber',
+                        employee_id: employee.id,
+                        name: employee.first_name
+                    });
+                } else {
+                    // No profile found
+                    console.log('No business profile found for', authUser.email);
+                    setUser(authUser);
+                }
             }
         } catch (error) {
             console.error('Error fetching profile', error);

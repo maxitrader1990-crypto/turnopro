@@ -58,7 +58,7 @@ const Employees = () => {
                 business_id: user.business_id,
                 first_name: data.first_name,
                 last_name: data.last_name,
-                // email: data.email, 
+                email: data.email,
                 phone: data.phone,
                 photo: data.photo,
                 bio: data.bio,
@@ -180,6 +180,9 @@ const Employees = () => {
                                         <Phone size={12} className="text-green-400" /> {emp.phone}
                                     </div>
                                 )}
+                                {emp.email && (
+                                    <div className="text-xs text-gray-500 text-center">{emp.email}</div>
+                                )}
 
                                 <button
                                     onClick={() => setScheduleEmployee(emp)}
@@ -204,6 +207,10 @@ const Employees = () => {
                             <label className="block text-sm font-medium text-gray-700">Apellido</label>
                             <input {...register('last_name', { required: true })} placeholder="Pérez" className="mt-1 block w-full input-urban text-black" />
                         </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Email (Para acceso al sistema)</label>
+                        <input {...register('email')} placeholder="barbero@ejemplo.com" className="mt-1 block w-full input-urban text-black" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Teléfono (WhatsApp)</label>

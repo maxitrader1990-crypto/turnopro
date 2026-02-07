@@ -334,8 +334,8 @@ const BookingPage = () => {
                                         <p className="text-gray-400 mb-6 text-sm">Explora los mejores trabajos realizados por nuestro Master Barber.</p>
 
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                            {/* Using GLAMOUR_SHOTS for now, but ideally this would come from employee.portfolio */}
-                                            {GLAMOUR_SHOTS.cuts.map((img, i) => (
+                                            {/* Use real portfolio if available, else fallback to demo shots */}
+                                            {(employeePortfolio && employeePortfolio.length > 0 ? employeePortfolio.map(i => i.image_url) : GLAMOUR_SHOTS.cuts).map((img, i) => (
                                                 <div key={i} className="group relative rounded-lg overflow-hidden aspect-square border border-white/5 hover:border-urban-accent/50 transition-colors">
                                                     <img
                                                         src={img}

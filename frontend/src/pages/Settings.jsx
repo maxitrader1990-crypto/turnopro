@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, Settings as SettingsIcon, Store, Link as LinkIcon, Copy, Save, Loader } from 'lucide-react';
+import { BookOpen, Settings as SettingsIcon, Store, Link as LinkIcon, Copy, Save, Loader, CreditCard } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 const Settings = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('guide');
     const queryClient = useQueryClient();
 
@@ -93,6 +94,13 @@ const Settings = () => {
                 >
                     <SettingsIcon size={18} />
                     Perfil del Negocio
+                </button>
+                <button
+                    onClick={() => navigate('/settings/billing')}
+                    className={`pb-4 px-2 flex items-center gap-2 font-medium transition-all text-sm uppercase tracking-wide border-b-2 border-transparent text-gray-500 hover:text-white hover:border-gray-700`}
+                >
+                    <CreditCard size={18} />
+                    Suscripción
                 </button>
             </div>
 
