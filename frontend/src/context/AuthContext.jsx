@@ -44,15 +44,26 @@ export const AuthProvider = ({ children }) => {
             console.log("Fetching profile for:", authUser.email);
             console.log("Step 1: Checking Super Admin...");
 
-            // Check if user is Super Admin via RPC (bypasses RLS)
-            console.log("Step 1: Calling check_is_super_admin RPC...");
-            const { data: isSuperAdminData, error: superAdminError } = await supabase
-                .rpc('check_is_super_admin');
+            // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC)
+            console.log("Step 1: Checking Super Admin (Direct Table)...");
+            let isSuperAdmin = false;
+            try {
+                const { data: adminData, error: adminError } = await supabase
+                    .from('super_admins')
+                    .select('user_id')
+                    .eq('user_id', authUser.id)
+                    .maybeSingle();
 
-            if (superAdminError) console.error("RPC Error:", superAdminError);
-
-            console.log("Step 1 Result: Is Super Admin?", isSuperAdminData);
-            const isSuperAdmin = !!isSuperAdminData;
+                if (adminError) {
+                    console.error("Super Admin Check Error (Non-blocking):", adminError);
+                } else if (adminData) {
+                    isSuperAdmin = true;
+                    console.log("Super Admin Verified ✅");
+                }
+            } catch (err) {
+                console.error("Super Admin Check Exception:", err);
+                isSuperAdmin = false; // Fallback to avoid blank screen
+            }
 
 
 

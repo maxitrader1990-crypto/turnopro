@@ -63,6 +63,19 @@ const BarberRoute = () => {
     return <Outlet />;
 };
 
+// Super Admin Route Wrapper
+const SuperAdminRoute = () => {
+    const { user, loading } = useAuth();
+
+    if (loading) return <div>Loading...</div>;
+
+    if (!user || !user.isSuperAdmin) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    return <Outlet />;
+};
+
 function App() {
     return (
         <BrowserRouter>
@@ -99,11 +112,13 @@ function App() {
                     </Route>
 
                     {/* Super Admin Routes */}
-                    <Route path="/superadmin" element={<SuperAdminLayout />}>
-                        <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
-                        <Route path="dashboard" element={<SuperAdminDashboard />} />
-                        <Route path="businesses" element={<BusinessList />} />
-                        {/* More routes coming soon */}
+                    <Route element={<SuperAdminRoute />}>
+                        <Route path="/superadmin" element={<SuperAdminLayout />}>
+                            <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
+                            <Route path="dashboard" element={<SuperAdminDashboard />} />
+                            <Route path="businesses" element={<BusinessList />} />
+                            {/* More routes coming soon */}
+                        </Route>
                     </Route>
                 </Routes>
             </AuthProvider>
