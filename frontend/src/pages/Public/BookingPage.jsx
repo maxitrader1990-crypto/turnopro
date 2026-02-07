@@ -272,7 +272,15 @@ const BookingPage = () => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                {employees?.filter(e => e.employee_services.some(es => es.services.id === selectedService.id)).map(employee => (
+                                {employees?.filter(e => {
+                                    // Make sure employee_services exists
+                                    const services = e.employee_services || [];
+                                    // If no specific services assigned, assume they do everything (permissive mode)
+                                    if (services.length === 0) return true;
+                                    // Otherwise, check if they are assigned to this service
+                                    // checking both direct service_id or nested relation just in case
+                                    return services.some(es => (es.service_id === selectedService.id) || (es.services?.id === selectedService.id));
+                                }).map(employee => (
                                     <button
                                         key={employee.id}
                                         onClick={() => { setSelectedEmployee(employee); setStep(3); }}
