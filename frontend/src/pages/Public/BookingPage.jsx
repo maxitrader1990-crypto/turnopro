@@ -133,6 +133,7 @@ const BookingPage = () => {
                     customer_id: customerId,
                     service_id: selectedService.id,
                     appointment_date: selectedTime.toISOString(),
+                    end_time: new Date(selectedTime.getTime() + selectedService.duration_minutes * 60000).toISOString(),
                     duration_minutes: selectedService.duration_minutes,
                     status: 'confirmed', // Auto-confirm for now
                     total_price: selectedService.price,
@@ -354,8 +355,8 @@ const BookingPage = () => {
                                         key={i}
                                         onClick={() => setSelectedTime(time)}
                                         className={`py-2 px-1 rounded-lg text-sm font-medium transition-all ${selectedTime && time.getTime() === selectedTime.getTime()
-                                                ? 'bg-urban-accent text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]'
-                                                : 'bg-white/5 text-gray-400 hover:bg-white/20 hover:text-white'
+                                            ? 'bg-urban-accent text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]'
+                                            : 'bg-white/5 text-gray-400 hover:bg-white/20 hover:text-white'
                                             }`}
                                     >
                                         {format(time, 'HH:mm')}
