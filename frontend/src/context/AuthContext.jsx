@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     const fetchBusinessProfile = async (authUser) => {
         try {
             console.log("Fetching profile for:", authUser.email);
+            console.log("Step 1: Checking Super Admin...");
 
             // Check if user is Super Admin
             const { data: superAdmin } = await supabase
@@ -50,9 +51,11 @@ export const AuthProvider = ({ children }) => {
                 .eq('id', authUser.id)
                 .maybeSingle();
 
+            console.log("Step 1 Result: Is Super Admin?", !!superAdmin);
             const isSuperAdmin = !!superAdmin;
 
             // 1. Try 'business_users' (Admin/Owners)
+            console.log("Step 2: Checking business_users...");
             const { data: profile, error } = await supabase
                 .from('business_users')
                 .select('*')
@@ -61,14 +64,18 @@ export const AuthProvider = ({ children }) => {
 
             if (error) console.error("Error fetching business_user:", error);
             if (profile) console.log("Found business profile:", profile);
+            else console.log("No business profile found.");
 
             if (profile) {
                 // 1. Fetch Subscription
+                console.log("Step 3: Fetching Subscription...");
                 const { data: subscription, error: subError } = await supabase
                     .from('subscriptions')
                     .select('*')
                     .eq('business_id', profile.business_id)
                     .maybeSingle();
+
+                console.log("Step 3 Result: Subscription found?", !!subscription);
 
                 if (subError) console.error("Error fetching subscription:", subError);
 
@@ -104,7 +111,7 @@ export const AuthProvider = ({ children }) => {
                 });
             } else {
                 // 2. Try 'employees' (Barbers/Staff) linked by user_id or email
-                console.log("No business_user found. Checking employees...");
+                console.log("No business_user found. Step 4: Checking employees...");
                 const { data: employee, error: empError } = await supabase
                     .from('employees')
                     .select('*')
