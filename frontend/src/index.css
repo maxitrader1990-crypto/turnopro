@@ -34,7 +34,12 @@
 
   /* Neon/Urban Button */
   .btn-urban {
-    @apply relative overflow-hidden bg-urban-accent text-black font-bold py-3 px-6 rounded-xl shadow-glow-gold transition-all duration-300 hover:scale-[1.02] hover:shadow-glow-gold-strong;
+    @apply relative overflow-hidden bg-urban-accent text-black font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02];
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+  }
+
+  .btn-urban:hover {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
   }
 
   .btn-urban::after {

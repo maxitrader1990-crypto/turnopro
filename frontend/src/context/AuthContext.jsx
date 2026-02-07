@@ -43,6 +43,15 @@ export const AuthProvider = ({ children }) => {
         try {
             console.log("Fetching profile for:", authUser.email);
 
+            // Check if user is Super Admin
+            const { data: superAdmin } = await supabase
+                .from('super_admins')
+                .select('id')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            const isSuperAdmin = !!superAdmin;
+
             // 1. Try 'business_users' (Admin/Owners)
             const { data: profile, error } = await supabase
                 .from('business_users')
@@ -86,6 +95,7 @@ export const AuthProvider = ({ children }) => {
                     ...authUser,
                     ...profile,
                     role: 'admin',
+                    isSuperAdmin, // Add this flag
                     subscription: {
                         ...subscription,
                         status: subStatus,

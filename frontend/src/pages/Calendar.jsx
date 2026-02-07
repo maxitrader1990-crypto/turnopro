@@ -210,10 +210,21 @@ const CalendarPage = () => {
 
             // Map to event format
             const mapped = data.map(app => {
-                let start = app.start_time ? new Date(app.start_time) : new Date(app.appointment_date);
-                let end = app.end_time ? new Date(app.end_time) : null;
+                // Parse date string (YYYY-MM-DD or full ISO)
+                const datePart = app.appointment_date.split('T')[0]; // Ensure we just get YYYY-MM-DD
 
-                if (!end) {
+                let start, end;
+
+                if (app.start_time) {
+                    // Combine date and time
+                    start = new Date(`${datePart}T${app.start_time}`);
+                } else {
+                    start = new Date(app.appointment_date);
+                }
+
+                if (app.end_time) {
+                    end = new Date(`${datePart}T${app.end_time}`);
+                } else {
                     const duration = app.services?.duration_minutes || 60;
                     end = new Date(start.getTime() + duration * 60000);
                 }

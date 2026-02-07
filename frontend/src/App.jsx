@@ -19,6 +19,9 @@ import BarberDashboard from './pages/Barber/Dashboard';
 import BarberPortfolio from './pages/Barber/Portfolio';
 
 import Billing from './pages/Billing';
+import SuperAdminLayout from './layouts/SuperAdminLayout';
+import SuperAdminDashboard from './pages/SuperAdmin/Dashboard';
+import BusinessList from './pages/SuperAdmin/BusinessList';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -93,6 +96,14 @@ function App() {
                             <Route path="dashboard" element={<BarberDashboard />} />
                             <Route path="portfolio" element={<BarberPortfolio />} />
                         </Route>
+                    </Route>
+
+                    {/* Super Admin Routes */}
+                    <Route path="/superadmin" element={<SuperAdminLayout />}>
+                        <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
+                        <Route path="dashboard" element={<SuperAdminDashboard />} />
+                        <Route path="businesses" element={<BusinessList />} />
+                        {/* More routes coming soon */}
                     </Route>
                 </Routes>
             </AuthProvider>
