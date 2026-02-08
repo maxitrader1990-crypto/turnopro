@@ -322,6 +322,7 @@ export const AuthProvider = ({ children }) => {
                     role: 'owner',
                     first_name: firstName,
                     last_name: lastName,
+                    user_id: authData.user.id, // Linked to Auth User
                     full_name: `${firstName} ${lastName}`.trim()
                 });
 
