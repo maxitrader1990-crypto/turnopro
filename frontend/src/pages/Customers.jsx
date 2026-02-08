@@ -15,6 +15,8 @@ const Customers = () => {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
     const [isCRMModalOpen, setIsCRMModalOpen] = useState(false);
+    const [isAddPointsOpen, setIsAddPointsOpen] = useState(false);
+    const [pointsToAdd, setPointsToAdd] = useState(0);
     const [crmTab, setCrmTab] = useState('notes'); // 'overview' | 'notes' | 'history'
     const [notesBuffer, setNotesBuffer] = useState('');
 
@@ -145,6 +147,28 @@ const Customers = () => {
         setIsCRMModalOpen(true);
     };
 
+    const handleOpenAddPoints = (customer) => {
+        setSelectedCustomer(customer);
+        setPointsToAdd(0);
+        setIsAddPointsOpen(true);
+    };
+
+    const addPointsMutation = useMutation({
+        mutationFn: async ({ customerId, points }) => {
+            const { data: cust } = await supabase.from('customers').select('points').eq('id', customerId).single();
+            const newPoints = (cust.points || 0) + parseInt(points);
+            const { error } = await supabase.from('customers').update({ points: newPoints }).eq('id', customerId);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['customers']);
+            toast.success('Puntos actualizados');
+            setIsAddPointsOpen(false);
+            setPointsToAdd(0);
+        },
+        onError: (err) => toast.error(err.message)
+    });
+
     const saveNotes = () => {
         if (selectedCustomer) {
             updateNotesMutation.mutate({ customerId: selectedCustomer.id, notes: notesBuffer });
@@ -227,6 +251,13 @@ const Customers = () => {
                                                     title="Canjear Puntos"
                                                 >
                                                     <Gift size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleOpenAddPoints(customer)}
+                                                    className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition-colors border border-transparent hover:border-green-400/30"
+                                                    title="Sumar Puntos Manualmente"
+                                                >
+                                                    <Award size={18} />
                                                 </button>
                                             </div>
                                         </td>
@@ -375,6 +406,43 @@ const Customers = () => {
                                 })}
                             </div>
                         </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Add Points Modal */}
+            <Modal isOpen={isAddPointsOpen} onClose={() => setIsAddPointsOpen(false)} title="Sumar Puntos Manualmente">
+                {selectedCustomer && (
+                    <div className="space-y-6">
+                        <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20 flex flex-col items-center">
+                            <div className="w-16 h-16 bg-green-900/50 rounded-full flex items-center justify-center mb-2">
+                                <Award className="text-green-400" size={32} />
+                            </div>
+                            <h3 className="text-white font-bold text-lg">{selectedCustomer.first_name} {selectedCustomer.last_name}</h3>
+                            <p className="text-gray-400 text-sm">Saldo actual: <span className="text-white font-mono">{selectedCustomer.points || 0}</span> pts</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Puntos a sumar</label>
+                            <input
+                                type="number"
+                                value={pointsToAdd}
+                                onChange={(e) => setPointsToAdd(e.target.value)}
+                                className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-2xl font-mono text-center text-green-400 focus:outline-none focus:border-green-500"
+                                placeholder="0"
+                            />
+                            <p className="text-xs text-gray-500 mt-2 text-center">
+                                Ingresa un valor negativo para restar puntos.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => addPointsMutation.mutate({ customerId: selectedCustomer.id, points: pointsToAdd })}
+                            disabled={!pointsToAdd || pointsToAdd == 0 || addPointsMutation.isPending}
+                            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {addPointsMutation.isPending ? 'Procesando...' : 'Confirmar Recarga'}
+                        </button>
                     </div>
                 )}
             </Modal>
