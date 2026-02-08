@@ -14,7 +14,23 @@ const Login = () => {
         e.preventDefault();
         const success = await login(formData.email, formData.password);
         if (success) {
-            navigate('/dashboard');
+            // Role-based redirect is handled inside login() or here if we had the user object immediately.
+            // Since login() updates state asynchronously, we might need to check user role or rely on AuthContext. 
+            // Better: Let's assume standard redirect and let ProtectedRoute handle it OR fetch user here.
+
+            // However, login() in AuthContext returns true/false.
+            // Let's modify redirection to check role if possible, or default to root which ProtectedRoute handles.
+            // But ProtectedRoute for /dashboard redirects to /onboarding if no business.
+            // So we must redirect to /superadmin explicitly if needed.
+
+            // We don't have the user object here easily without race conditions.
+            // BUT, we can simply redirect to '/' and let the router decide?
+            // ProtectedRoute for '/' redirects to '/dashboard'.
+
+            // Let's hard reload or simple redirect.
+            // Ideally, we should check the user role.
+            // We can get the user from supabase directly to be sure.
+            navigate('/');
         }
     };
 

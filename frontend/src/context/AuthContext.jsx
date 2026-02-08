@@ -28,12 +28,18 @@ export const AuthProvider = ({ children }) => {
 
     const checkSession = async () => {
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
             if (session?.user) {
                 await fetchBusinessProfile(session.user);
             }
         } catch (error) {
-            console.error('Session check error', error);
+            if (error.name === 'AbortError' || error.message.includes('AbortError')) {
+                // Ignore fetch aborts (common in React StrictMode or rapid navigation)
+                console.log('Session check aborted via AbortController');
+            } else {
+                console.error('Session check error', error);
+            }
         } finally {
             setLoading(false);
         }
@@ -153,6 +159,10 @@ export const AuthProvider = ({ children }) => {
                 }
             }
         } catch (error) {
+            if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+                console.log('Profile fetch aborted');
+                return;
+            }
             console.error('Error fetching profile', error);
             setUser(authUser);
         }
@@ -170,6 +180,9 @@ export const AuthProvider = ({ children }) => {
             toast.success('¡Bienvenido!');
             return true;
         } catch (error) {
+            if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+                return false;
+            }
             toast.error(error.message || 'Error al iniciar sesión');
             return false;
         }
@@ -273,6 +286,9 @@ export const AuthProvider = ({ children }) => {
                 return { success: true, autoLogin: false };
             }
         } catch (error) {
+            if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+                return { success: false };
+            }
             toast.error(error.message || 'Error al registrarse');
             return { success: false };
         }

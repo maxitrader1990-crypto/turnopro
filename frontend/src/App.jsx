@@ -43,6 +43,29 @@ const ProtectedRoute = () => {
         return <Navigate to="/barber/dashboard" replace />;
     }
 
+    // Redirect Super Admins to their Dashboard
+    if (user.isSuperAdmin) {
+        // Only redirect if they are NOT trying to access /superadmin routes
+        // But ProtectedRoute wraps /dashboard... 
+
+        // If they are visiting /dashboard, send them to /superadmin/dashboard
+        if (location.pathname === '/dashboard' || location.pathname === '/') {
+            return <Navigate to="/superadmin/dashboard" replace />;
+        }
+        // If they are accessing other protected routes (like settings?), allow if they have business.
+        // If they don't have business, and trying to access /services, they get blocked below.
+    }
+
+    // Safety check: specific to this app logic
+    // If user is logged in but has no business profile, redirect to onboarding
+    if (!user.business_id) {
+        // If Super Admin, allow them to pass? OR redirect to superadmin dashboard?
+        if (user.isSuperAdmin) {
+            return <Navigate to="/superadmin/dashboard" replace />;
+        }
+        return <Navigate to="/onboarding" replace />;
+    }
+
     // Subscription Check
     if (user.role === 'admin' && user.subscription) {
         const isExpired = user.subscription.status === 'expired' || user.subscription.daysRemaining <= 0;
