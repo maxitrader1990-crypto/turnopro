@@ -80,16 +80,22 @@ const OnboardingPage = () => {
 
                 if (bErr) throw bErr;
 
+                // FIX: Ensure we have the correct User ID from the session (sometimes context is stale)
+                const { data: sessionData } = await supabase.auth.getSession();
+                const sessionUser = sessionData?.session?.user || user;
+
+                if (!sessionUser?.id) throw new Error("User ID missing. Please refresh and try again.");
+
                 // 2. Link User in business_users
                 const { error: uErr } = await supabase
                     .from('business_users')
                     .insert({
                         business_id: bus.id,
-                        email: user.email,
+                        email: sessionUser.email,
                         first_name: data.firstName,
                         last_name: data.lastName,
                         role: 'owner',
-                        user_id: user.id,
+                        user_id: sessionUser.id,
                         full_name: `${data.firstName} ${data.lastName}`.trim()
                     });
 
