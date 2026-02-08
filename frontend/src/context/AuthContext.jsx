@@ -11,8 +11,19 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Safety timeout: Ensure app loads even if everything else hangs
+        const safetyTimeout = setTimeout(() => {
+            setLoading((currentLoading) => {
+                if (currentLoading) {
+                    console.error("Safety Timeout Triggered: Forcing app load.");
+                    return false;
+                }
+                return currentLoading;
+            });
+        }, 8000); // 8 seconds max wait
+
         // Check active session
-        checkSession();
+        checkSession().finally(() => clearTimeout(safetyTimeout));
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -23,7 +34,10 @@ export const AuthProvider = ({ children }) => {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            subscription.unsubscribe();
+            clearTimeout(safetyTimeout);
+        };
     }, []);
 
     const checkSession = async () => {
@@ -84,21 +98,40 @@ export const AuthProvider = ({ children }) => {
 
 
 
-            // 1. Try 'business_users' (Admin/Owners)
+            // 1. Try 'business_users' (Admin/Owners) with TIMEOUT
             console.log("Step 2: Checking business_users...");
-            const { data: profile, error } = await supabase
-                .from('business_users')
-                .select('*')
-                .eq('email', authUser.email)
-                .maybeSingle();
+            let profile = null;
+            try {
+                const checkBusinessPromise = supabase
+                    .from('business_users')
+                    .select('*')
+                    .eq('email', authUser.email)
+                    .maybeSingle();
 
-            if (error) console.error("Error fetching business_user:", error);
-            if (profile) console.log("Found business profile:", profile);
-            else console.log("No business profile found.");
+                const businessTimeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Business User Check Timed Out')), 5000)
+                );
+
+                const { data: businessData, error: businessError } = await Promise.race([
+                    checkBusinessPromise,
+                    businessTimeoutPromise
+                ]);
+
+                if (businessError) console.error("Error fetching business_user:", businessError);
+                if (businessData) {
+                    profile = businessData;
+                    console.log("Found business profile:", profile);
+                } else {
+                    console.log("No business profile found.");
+                }
+            } catch (err) {
+                console.error("Business User Check Exception/Timeout:", err);
+            }
 
             if (profile) {
                 // 1. Fetch Subscription
                 console.log("Step 3: Fetching Subscription...");
+                // Note: Subscription check is less critical, can fail gracefully if needed
                 const { data: subscription, error: subError } = await supabase
                     .from('subscriptions')
                     .select('*')
@@ -142,13 +175,29 @@ export const AuthProvider = ({ children }) => {
             } else {
                 // 2. Try 'employees' (Barbers/Staff) linked by user_id or email
                 console.log("No business_user found. Step 4: Checking employees...");
-                const { data: employee, error: empError } = await supabase
-                    .from('employees')
-                    .select('*')
-                    .or(`user_id.eq.${authUser.id},email.eq.${authUser.email}`)
-                    .maybeSingle();
+                let employee = null;
+                try {
+                    const checkEmployeePromise = supabase
+                        .from('employees')
+                        .select('*')
+                        .or(`user_id.eq.${authUser.id},email.eq.${authUser.email}`)
+                        .maybeSingle();
 
-                if (empError) console.error("Error fetching employee:", empError);
+                    const employeeTimeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Employee Check Timed Out')), 5000)
+                    );
+
+                    const { data: empData, error: empError } = await Promise.race([
+                        checkEmployeePromise,
+                        employeeTimeoutPromise
+                    ]);
+
+                    if (empError) console.error("Error fetching employee:", empError);
+                    if (empData) employee = empData;
+
+                } catch (err) {
+                    console.error("Employee Check Exception/Timeout:", err);
+                }
 
                 if (employee) {
                     // If linked by email but not user_id yet, update user_id
