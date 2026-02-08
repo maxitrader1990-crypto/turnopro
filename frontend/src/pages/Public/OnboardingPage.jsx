@@ -9,7 +9,7 @@ import { supabase } from '../../supabase';
 const OnboardingPage = () => {
     const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const navigate = useNavigate();
-    const { register: registerAuth, user, loginWithGoogle } = useAuth(); // Destructure properly
+    const { register: registerAuth, user, loginWithGoogle, refreshProfile } = useAuth(); // Destructure properly
 
     // Pre-fill if user logged in via Google
     useEffect(() => {
