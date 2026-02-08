@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
                 }
                 return currentLoading;
             });
-        }, 8000); // 8 seconds max wait
+        }, 12000); // Increased to 12 seconds to account for multiple sequential timeouts
 
         // Check active session
         checkSession().finally(() => clearTimeout(safetyTimeout));
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (error) {
             if (error.name === 'AbortError' || error.message.includes('AbortError')) {
-                // Ignore fetch aborts (common in React StrictMode or rapid navigation)
+                // Ignore fetch aborts
                 console.log('Session check aborted via AbortController');
             } else {
                 console.error('Session check error', error);
@@ -59,10 +59,19 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshProfile = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+            await fetchBusinessProfile(session.user);
+        }
+    };
+
     const fetchBusinessProfile = async (authUser) => {
         try {
             console.log("Fetching profile for:", authUser.email);
             console.log("Step 1: Checking Super Admin...");
+            // ... (rest of logic remains, verify end of function)
+
 
             // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC)
             // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC) with TIMEOUT
@@ -339,6 +348,8 @@ export const AuthProvider = ({ children }) => {
 
             // Check if session was created immediately (Email Confirm Disabled)
             if (authData.session) {
+                // Ensure profile is loaded before redirecting
+                await refreshProfile();
                 toast.success('¡Cuenta creada correctamente!');
                 return { success: true, autoLogin: true };
             } else {
@@ -366,6 +377,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         register,
+        refreshProfile, // Expose this
         // Expose supabase client directly if needed, or helper
         api: null // We are removing `api` axios instance. Components should use `supabase` import.
     };

@@ -94,6 +94,10 @@ const OnboardingPage = () => {
                     });
 
                 if (uErr) throw uErr;
+
+                // IMPORTANT: Manually refresh profile to update context WITHOUT reload
+                await refreshProfile();
+
                 return true;
             }
 
@@ -109,7 +113,8 @@ const OnboardingPage = () => {
             // If result is boolean true (from Google flow or autoLogin) OR object with autoLogin: true
             if (result === true || result?.autoLogin) {
                 toast.success("¡Bienvenido al Dashboard!");
-                setTimeout(() => window.location.href = '/dashboard', 1000); // Force reload/redirect
+                // Use navigate instead of window.location.href to preserve session state
+                navigate('/dashboard', { replace: true });
             } else {
                 toast.success("Revisa tu email para confirmar.");
                 setTimeout(() => navigate('/login'), 2000);
