@@ -48,7 +48,7 @@ const OnboardingPage = () => {
                 let suffix = 0;
                 let checkSlug = finalSlug;
 
-                while (!isUnique && suffix < 10) {
+                while (!isUnique && suffix < 100) {
                     const { data: existing } = await supabase
                         .from('businesses')
                         .select('id')

@@ -215,7 +215,7 @@ export const AuthProvider = ({ children }) => {
                 let suffix = 0;
                 let checkSlug = finalSlug;
 
-                while (!isUnique && suffix < 10) { // Limit retry to avoid infinite loops
+                while (!isUnique && suffix < 100) { // Limit retry to avoid infinite loops
                     const { data: existing } = await supabase
                         .from('businesses')
                         .select('id')
