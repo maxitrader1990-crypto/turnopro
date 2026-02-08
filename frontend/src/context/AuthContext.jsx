@@ -51,14 +51,25 @@ export const AuthProvider = ({ children }) => {
             console.log("Step 1: Checking Super Admin...");
 
             // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC)
+            // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC) with TIMEOUT
             console.log("Step 1: Checking Super Admin (Direct Table)...");
             let isSuperAdmin = false;
             try {
-                const { data: adminData, error: adminError } = await supabase
+                // TIMEOUT SAFETY: Wrap the database call
+                const checkSuperAdminPromise = supabase
                     .from('super_admins')
                     .select('user_id')
                     .eq('user_id', authUser.id)
                     .maybeSingle();
+
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Super Admin Check Timed Out')), 5000)
+                );
+
+                const { data: adminData, error: adminError } = await Promise.race([
+                    checkSuperAdminPromise,
+                    timeoutPromise
+                ]);
 
                 if (adminError) {
                     console.error("Super Admin Check Error (Non-blocking):", adminError);
@@ -67,7 +78,7 @@ export const AuthProvider = ({ children }) => {
                     console.log("Super Admin Verified ✅");
                 }
             } catch (err) {
-                console.error("Super Admin Check Exception:", err);
+                console.error("Super Admin Check Exception/Timeout:", err);
                 isSuperAdmin = false; // Fallback to avoid blank screen
             }
 
