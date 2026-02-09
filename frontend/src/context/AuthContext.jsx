@@ -115,6 +115,8 @@ export const AuthProvider = ({ children }) => {
                     .from('business_users')
                     .select('*')
                     .eq('email', authUser.email)
+                    .order('created_at', { ascending: false }) // Prioritize recent business
+                    .limit(1)
                     .maybeSingle();
 
                 const businessTimeoutPromise = new Promise((_, reject) =>

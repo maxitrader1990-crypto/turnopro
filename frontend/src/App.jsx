@@ -35,18 +35,7 @@ const ProtectedRoute = () => {
         return <Navigate to="/login" replace />;
     }
 
-    // Safety check: specific to this app logic
-    // If user is logged in but has no business profile, redirect to onboarding
-    if (!user.business_id) {
-        return <Navigate to="/onboarding" replace />;
-    }
-
-    // Redirect Barbers to their Dashboard
-    if (user.role === 'barber') {
-        return <Navigate to="/barber/dashboard" replace />;
-    }
-
-    // Redirect Super Admins to their Dashboard
+    // Redirect Super Admins to their Dashboard (PRIORITY CHECK)
     if (user.isSuperAdmin) {
         // Only redirect if they are NOT trying to access /superadmin routes
         // But ProtectedRoute wraps /dashboard... 
@@ -67,6 +56,11 @@ const ProtectedRoute = () => {
             return <Navigate to="/superadmin/dashboard" replace />;
         }
         return <Navigate to="/onboarding" replace />;
+    }
+
+    // Redirect Barbers to their Dashboard
+    if (user.role === 'barber') {
+        return <Navigate to="/barber/dashboard" replace />;
     }
 
     // Subscription Check
