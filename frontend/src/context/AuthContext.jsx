@@ -328,24 +328,42 @@ export const AuthProvider = ({ children }) => {
                     full_name: `${firstName} ${lastName}`.trim()
                 });
 
-                // 4. Seed Default Data (Services & Rewards)
+                // 4. Seed Default Data (Services & Rewards & Employees)
+
+                // Services
                 const defaultServices = [
-                    { name: 'Corte Clásico', price: 10000, duration_minutes: 30, points_reward: 10, description: 'Corte de cabello tradicional con tijera o máquina.' },
-                    { name: 'Corte + Barba', price: 15000, duration_minutes: 45, points_reward: 20, description: 'Servicio completo de corte y perfilado de barba.' },
-                    { name: 'Color / Mechas', price: 25000, duration_minutes: 90, points_reward: 50, description: 'Coloración profesional.' }
+                    { name: 'Corte Premium', price: 16000, duration_minutes: 45, points_reward: 20, description: 'Corte de cabello profesional con lavado y styling.', category: 'Cabello' },
+                    { name: 'Corte + Barba VIP', price: 20000, duration_minutes: 60, points_reward: 35, description: 'Servicio completo: Corte, perfilado de barba y toalla caliente.', category: 'Completo' },
+                    { name: 'Perfilado de Cejas', price: 5000, duration_minutes: 15, points_reward: 10, description: 'Diseño y limpieza de cejas con navaja o cera.', category: 'Rostro' },
+                    { name: 'Diseños / Freestyle', price: 4000, duration_minutes: 15, points_reward: 10, description: 'Diseño artístico a elección.', category: 'Arte' }
                 ];
 
                 await supabase.from('services').insert(
                     defaultServices.map(s => ({ ...s, business_id: business.id }))
                 );
 
+                // Rewards
                 const defaultRewards = [
-                    { name: 'Corte Gratis', points_cost: 500, description: 'Canjea tus puntos por un corte sin cargo.' },
-                    { name: '10% OFF', points_cost: 100, description: 'Descuento en tu próxima visita.' }
+                    { name: 'Corte Gratis', points_cost: 1000, description: 'Canjea 1000 puntos por un corte totalmente gratis.' },
+                    { name: '50% OFF en Corte + Barba', points_cost: 600, description: 'Mitad de precio en tu servicio completo.' },
+                    { name: 'Producto de Styling', points_cost: 400, description: 'Cera, gel o pomada a elección.' },
+                    { name: 'Bebida Premium', points_cost: 100, description: 'Café especial o bebida energética durante tu espera.' }
                 ];
 
                 await supabase.from('rewards').insert(
                     defaultRewards.map(r => ({ ...r, business_id: business.id }))
+                );
+
+                // Employees (4 Default Staff)
+                const defaultEmployees = [
+                    { first_name: 'Barbero', last_name: 'Principal', role: 'admin', email: email, phone: '', biography: 'Dueño y barbero experto.', user_id: authData.user.id }, // Link owner as first employee
+                    { first_name: 'Estilista', last_name: 'Senior', role: 'barber', email: 'staff1@demo.com', phone: '', biography: 'Especialista en cortes clásicos y modernos.', user_id: null },
+                    { first_name: 'Especialista', last_name: 'Barba', role: 'barber', email: 'staff2@demo.com', phone: '', biography: 'Experto en rituales de barba y afeitado.', user_id: null },
+                    { first_name: 'Barbero', last_name: 'Junior', role: 'barber', email: 'staff3@demo.com', phone: '', biography: 'Talento en ascenso, cortes urbanos.', user_id: null }
+                ];
+
+                await supabase.from('employees').insert(
+                    defaultEmployees.map(e => ({ ...e, business_id: business.id }))
                 );
             }
 
