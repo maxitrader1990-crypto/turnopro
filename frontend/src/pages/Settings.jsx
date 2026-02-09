@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BookOpen, Settings as SettingsIcon, Store, Link as LinkIcon, Copy, Save, Loader, CreditCard } from 'lucide-react';
