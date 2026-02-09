@@ -365,6 +365,20 @@ export const AuthProvider = ({ children }) => {
                 await supabase.from('employees').insert(
                     defaultEmployees.map(e => ({ ...e, business_id: business.id }))
                 );
+
+                // 5. Create Free Trial Subscription (30 Days)
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setDate(startDate.getDate() + 30); // Add 30 days
+
+                await supabase.from('subscriptions').insert({
+                    business_id: business.id,
+                    plan_type: 'premium', // Grant full access
+                    status: 'active',
+                    current_period_start: startDate.toISOString(),
+                    current_period_end: endDate.toISOString(),
+                    cancel_at_period_end: false
+                });
             }
 
             // Check if session was created immediately (Email Confirm Disabled)
