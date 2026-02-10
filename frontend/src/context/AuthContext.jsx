@@ -399,9 +399,36 @@ export const AuthProvider = ({ children }) => {
                     }
                 ];
 
-                await supabase.from('employees').insert(
+                const { data: createdEmployees } = await supabase.from('employees').insert(
                     defaultEmployees.map(e => ({ ...e, business_id: business.id }))
-                );
+                ).select();
+
+                // 6. Seed Portfolio Items (For Carousel & Individual Portfolios)
+                const defaultPortfolioImages = [
+                    "https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=2070&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=2070&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1532710093739-9470acff878f?q=80&w=2070&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=2070&auto=format&fit=crop"
+                ];
+
+                const portfolioInserts = [];
+                // Distribute images among employees
+                if (createdEmployees && createdEmployees.length > 0) {
+                    defaultPortfolioImages.forEach((img, index) => {
+                        // Round robin assignment
+                        const employee = createdEmployees[index % createdEmployees.length];
+                        portfolioInserts.push({
+                            business_id: business.id,
+                            employee_id: employee.id,
+                            image_url: img,
+                            description: "Trabajo Premium - Estilo y Corte"
+                        });
+                    });
+
+                    await supabase.from('portfolio_items').insert(portfolioInserts);
+                }
 
                 // 5. Create Free Trial Subscription (30 Days)
                 const startDate = new Date();

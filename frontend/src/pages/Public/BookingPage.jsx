@@ -11,15 +11,15 @@ import { format, addMinutes, isAfter, setHours, setMinutes, isSameDay } from 'da
 import { es } from 'date-fns/locale';
 
 // --- LOOKBOOK DATA (Simulated for Demo) ---
-const GLAMOUR_SHOTS = {
-    cuts: [
-        "https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop", // Cutting
-        "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=2070&auto=format&fit=crop", // Tools
-        "https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop", // Interior
-        "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=2070&auto=format&fit=crop", // Chair
-        "https://images.unsplash.com/photo-1532710093739-9470acff878f?q=80&w=2070&auto=format&fit=crop"  // Shave
-    ]
-};
+// --- LOOKBOOK DATA (Dynamic via Supabase) ---
+// We will fetch this in the component
+const DEMO_GLAMOUR_SHOTS = [
+    "https://placehold.co/600x400/1a1a1a/FFF?text=Corte+Premium",
+    "https://placehold.co/600x400/1a1a1a/FFF?text=Herramientas",
+    "https://placehold.co/600x400/1a1a1a/FFF?text=Ambiente",
+    "https://placehold.co/600x400/1a1a1a/FFF?text=Sillon",
+    "https://placehold.co/600x400/1a1a1a/FFF?text=Afeitado"
+];
 
 const BookingPage = () => {
     const { slug } = useParams();
@@ -192,6 +192,33 @@ const BookingPage = () => {
         createAppointmentMutation.mutate(data);
     };
 
+    // Portfolio Fetch (All items for business)
+    const { data: portfolioItems } = useQuery({
+        queryKey: ['publicPortfolio', business?.id],
+        queryFn: async () => {
+            const { data } = await supabase
+                .from('portfolio_items')
+                .select('*')
+                .eq('business_id', business.id)
+                .order('created_at', { ascending: false });
+            return data || [];
+        },
+        enabled: !!business?.id
+    });
+
+    // Helper to get portfolio for specific employee
+    const getEmployeePortfolio = (empId) => {
+        return portfolioItems?.filter(item => item.employee_id === empId) || [];
+    };
+
+    // Helper to get general carousel items (all or top X)
+    const getCarouselItems = () => {
+        // If we have real items, use them (up to 10)
+        if (portfolioItems && portfolioItems.length > 0) return portfolioItems.slice(0, 10).map(i => i.image_url);
+        // Fallback to demo
+        return DEMO_GLAMOUR_SHOTS;
+    };
+
     if (loadingBusiness) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Cargando barbería...</div>;
     if (!business) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Negocio no encontrado.</div>;
 
@@ -212,8 +239,8 @@ const BookingPage = () => {
                             {business.name.replace(/([a-z])([A-Z])/g, '$1 $2').replace('PATAGONIAAUTOMATIZA', 'PATAGONIA AUTOMATIZA')}
                         </h1>
                         <div className="flex items-center gap-2 mt-2">
-                            <span className="bg-urban-accent text-black text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Premium</span>
-                            <p className="text-gray-300 text-sm font-medium tracking-wide">Experiencia de Lujo</p>
+                            <span className="bg-urban-accent text-black text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider">Premium V2</span>
+                            <p className="text-gray-300 text-sm font-medium tracking-wide">Experiencia de Lujo Actualizada</p>
                         </div>
                     </div>
                     <div className="flex gap-2 text-white/80">
@@ -321,6 +348,16 @@ const BookingPage = () => {
                                                 <span>Seleccionar</span>
                                                 <ChevronRight size={16} className="text-urban-accent" />
                                             </div>
+
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setViewingPortfolio(employee);
+                                                }}
+                                                className="mt-3 text-[10px] text-gray-500 hover:text-urban-accent uppercase tracking-wider font-bold transition-colors z-20 relative"
+                                            >
+                                                Ver portafolio →
+                                            </button>
                                         </div>
                                     </button>
                                 ))}
@@ -340,17 +377,23 @@ const BookingPage = () => {
                                         <p className="text-gray-400 mb-6 text-sm">Explora los mejores trabajos realizados por nuestro Master Barber.</p>
 
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                            {/* Use real portfolio if available, else fallback to demo shots */}
-                                            {(employeePortfolio && employeePortfolio.length > 0 ? employeePortfolio.map(i => i.image_url) : GLAMOUR_SHOTS.cuts).map((img, i) => (
-                                                <div key={i} className="group relative rounded-lg overflow-hidden aspect-square border border-white/5 hover:border-urban-accent/50 transition-colors">
-                                                    <img
-                                                        src={img}
-                                                        alt={`Portfolio ${i}`}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                                            {/* Use real portfolio if available, else fallback msg */}
+                                            {getEmployeePortfolio(viewingPortfolio.id).length > 0 ? (
+                                                getEmployeePortfolio(viewingPortfolio.id).map((item, i) => (
+                                                    <div key={item.id || i} className="group relative rounded-lg overflow-hidden aspect-square border border-white/5 hover:border-urban-accent/50 transition-colors">
+                                                        <img
+                                                            src={item.image_url}
+                                                            alt={`Portfolio ${i}`}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="col-span-full text-center py-10 text-gray-500">
+                                                    <p>Este profesional aún no ha subido fotos a su portafolio.</p>
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
                                         <div className="mt-6 flex justify-end">
                                             <button
@@ -368,13 +411,13 @@ const BookingPage = () => {
                                 </div>
                             )}
 
-                            {/* DEMO LOOKBOOK SHOWCASE (Static for now to show impact) */}
+                            {/* DYNAMIC LOOKBOOK SHOWCASE */}
                             <div className="mt-8 pt-8 border-t border-white/10">
                                 <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <Instagram size={14} /> Últimos trabajos del equipo
                                 </h4>
                                 <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x">
-                                    {GLAMOUR_SHOTS.cuts.map((img, i) => (
+                                    {getCarouselItems().map((img, i) => (
                                         <div key={i} className="flex-shrink-0 w-32 h-40 rounded-lg overflow-hidden relative group snap-center cursor-pointer">
                                             <img src={img} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>

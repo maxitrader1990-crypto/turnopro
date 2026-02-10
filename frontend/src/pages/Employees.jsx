@@ -265,17 +265,69 @@ const Employees = () => {
                         <label className="block text-sm font-medium text-gray-700">Biografía Corta</label>
                         <textarea {...register('bio')} rows="3" className="mt-1 block w-full input-urban text-black" placeholder="Experiencia, especialidad..." />
                     </div>
-                    <div className="flex justify-end pt-4 border-t border-gray-100 mt-4">
+                    <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
                         <button
                             type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="btn-ghost-dark text-gray-500 hover:text-gray-700 border-transparent mr-2"
+                            onClick={closeModal}
+                            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                         >
                             Cancelar
                         </button>
-                        <button type="submit" className="btn-urban w-full sm:w-auto">Guardar Talento</button>
+                        <button
+                            type="submit"
+                            disabled={createMutation.isPending || updateMutation.isPending}
+                            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
+                        >
+                            {selectedEmployee ? 'Guardar Cambios' : 'Crear Empleado'}
+                        </button>
                     </div>
                 </form>
+
+                {/* PORTFOLIO SECTION (Only when editing) */}
+                {selectedEmployee && (
+                    <div className="mt-8 pt-8 border-t border-gray-200">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">Portafolio de Trabajos</h3>
+
+                        <div className="mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <h4 className="text-sm font-bold text-gray-700 mb-2">Agregar Nueva Foto</h4>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    id="new-portfolio-url"
+                                    placeholder="https://..."
+                                    className="input-urban flex-1 text-black bg-white"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        const urlInput = document.getElementById('new-portfolio-url');
+                                        if (!urlInput.value) return toast.error("Ingresa una URL");
+
+                                        try {
+                                            const { error } = await supabase.from('portfolio_items').insert({
+                                                business_id: user.business_id,
+                                                employee_id: selectedEmployee.id,
+                                                image_url: urlInput.value,
+                                                description: "Trabajo realizado"
+                                            });
+                                            if (error) throw error;
+                                            toast.success("Foto agregada");
+                                            urlInput.value = "";
+                                            queryClient.invalidateQueries(['portfolio', selectedEmployee.id]);
+                                        } catch (e) {
+                                            toast.error("Error al agregar foto: " + e.message);
+                                        }
+                                    }}
+                                    className="bg-urban-accent text-black px-4 py-2 rounded-lg font-bold hover:brightness-110"
+                                >
+                                    Agregar
+                                </button>
+                            </div>
+                        </div>
+
+                        <PortfolioList employeeId={selectedEmployee.id} businessId={user.business_id} />
+                    </div>
+                )}
             </Modal>
 
             {/* Schedule Modal */}
