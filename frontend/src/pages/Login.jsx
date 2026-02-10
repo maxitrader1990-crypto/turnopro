@@ -25,15 +25,16 @@ const Login = () => {
     return (
         <div className="min-h-screen bg-black flex">
             {/* Left Side - Form */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-24 bg-black relative z-10">
+            <div className="w-full lg:w-1/2 flex flex-col justify-between px-8 sm:px-12 lg:px-24 bg-black relative z-10 py-10">
 
-                <div className="absolute top-10 left-8 sm:left-12 lg:left-24">
-                    <span className="text-2xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent transform hover:scale-105 transition-transform cursor-default">
+                {/* Logo - Static positioning */}
+                <div className="flex justify-start">
+                    <span className="text-2xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent">
                         Maestros del Estilo
                     </span>
                 </div>
 
-                <div className="max-w-md w-full mx-auto">
+                <div className="max-w-md w-full mx-auto my-auto">
                     <div className="mb-10">
                         <h2 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
                             Bienvenido
@@ -108,21 +109,27 @@ const Login = () => {
                         </Link>
                     </p>
                 </div>
+
+                {/* Footer placeholder to balance top logo */}
+                <div className="hidden sm:block"></div>
             </div>
 
             {/* Right Side - Image */}
             <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-l from-black via-transparent to-transparent z-10"></div>
+                {/* Gradient Fix: From Black (Left) to Transparent (Right) */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10"></div>
+
                 <img
                     src="https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop"
                     alt="Barber Shop Atmosphere"
                     className="w-full h-full object-cover animate-ken-burns"
                 />
+
                 <div className="absolute bottom-10 right-10 z-20 text-right max-w-md">
-                    <p className="text-white text-3xl font-bold italic">
+                    <p className="text-white text-3xl font-bold italic drop-shadow-lg">
                         "El estilo es una forma de decir quién eres sin tener que hablar."
                     </p>
-                    <p className="text-urban-accent mt-2 font-semibold">— Maestros del Estilo</p>
+                    <p className="text-urban-accent mt-2 font-semibold drop-shadow-md">— Maestros del Estilo</p>
                 </div>
             </div>
 
