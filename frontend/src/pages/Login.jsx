@@ -115,14 +115,14 @@ const Login = () => {
             </div>
 
             {/* Right Side - Image */}
-            <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-                {/* Gradient Fix: From Black (Left) to Transparent (Right) */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10"></div>
+            <div className="hidden lg:block lg:w-1/2 relative overflow-hidden bg-gray-900">
+                {/* Gradient Fix: From Black (Left) to Transparent (Right) - Adjusted usage */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent z-10"></div>
 
                 <img
-                    src="https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop"
+                    src="https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop"
                     alt="Barber Shop Atmosphere"
-                    className="w-full h-full object-cover animate-ken-burns"
+                    className="w-full h-full object-cover animate-ken-burns opacity-90"
                 />
 
                 <div className="absolute bottom-10 right-10 z-20 text-right max-w-md">
