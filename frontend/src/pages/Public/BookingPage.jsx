@@ -13,11 +13,11 @@ import { es } from 'date-fns/locale';
 // --- LOOKBOOK DATA (Simulated for Demo) ---
 const GLAMOUR_SHOTS = {
     cuts: [
-        "https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop", // Barbershop atmosphere
-        "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=2070&auto=format&fit=crop", // Modern Fade
-        "https://images.unsplash.com/photo-1593702295094-aec8c569ed0f?q=80&w=2070&auto=format&fit=crop", // Beard Trim
-        "https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop", // Scissor Cut
-        "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=2070&auto=format&fit=crop"  // Styling
+        "https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop", // Cutting
+        "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=2070&auto=format&fit=crop", // Tools
+        "https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop", // Interior
+        "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=2070&auto=format&fit=crop", // Chair
+        "https://images.unsplash.com/photo-1532710093739-9470acff878f?q=80&w=2070&auto=format&fit=crop"  // Shave
     ]
 };
 
@@ -274,47 +274,53 @@ const BookingPage = () => {
                                 </h2>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {employees?.filter(e => {
-                                    // Make sure employee_services exists
                                     const services = e.employee_services || [];
-                                    // If no specific services assigned, assume they do everything (permissive mode)
                                     if (services.length === 0) return true;
-                                    // Otherwise, check if they are assigned to this service
-                                    // checking both direct service_id or nested relation just in case
                                     return services.some(es => (es.service_id === selectedService.id) || (es.services?.id === selectedService.id));
                                 }).map(employee => (
                                     <button
                                         key={employee.id}
                                         onClick={() => { setSelectedEmployee(employee); setStep(3); }}
-                                        className="relative p-1 rounded-2xl group text-left transition-all"
+                                        className="relative group overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1"
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-black rounded-2xl border border-white/10 group-hover:border-urban-accent/50 transition-colors"></div>
-                                        <div className="relative p-4 flex flex-col items-center">
-                                            <div className="w-20 h-20 rounded-full bg-gray-700 mb-3 overflow-hidden border-2 border-transparent group-hover:border-urban-accent transition-all shadow-lg">
-                                                {/* Placeholder Avatar or Initials */}
-                                                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-2xl font-bold text-gray-400 group-hover:text-white">
-                                                    {employee.first_name[0]}
-                                                </div>
-                                            </div>
-                                            <h3 className="font-bold text-white text-lg">{employee.first_name}</h3>
-                                            <p className="text-xs text-urban-accent font-medium uppercase tracking-wider mb-2">Master Barber</p>
+                                        <div className="absolute inset-0 bg-[#0f1115] border border-white/10 group-hover:border-urban-accent/50 transition-colors z-0"></div>
 
-                                            {/* LOOKBOOK PREVIEW */}
-                                            <div className="flex -space-x-2 overflow-hidden py-2">
-                                                {GLAMOUR_SHOTS.cuts.slice(0, 3).map((img, i) => (
-                                                    <img key={i} src={img} alt="Cut" className="w-8 h-8 rounded-full border border-black object-cover" />
-                                                ))}
+                                        {/* Card Content */}
+                                        <div className="relative z-10 p-6 flex flex-col items-center">
+                                            {/* Avatar */}
+                                            <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-b from-urban-accent to-transparent mb-4 shadow-xl group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-shadow">
+                                                {employee.profile_image_url ? (
+                                                    <img
+                                                        src={employee.profile_image_url}
+                                                        alt={employee.first_name}
+                                                        className="w-full h-full rounded-full object-cover border-4 border-[#0f1115] bg-gray-800"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = `https://ui-avatars.com/api/?name=${employee.first_name}+${employee.last_name}&background=1a1d21&color=f59e0b&size=256`;
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full rounded-full border-4 border-[#0f1115] bg-gray-800 flex items-center justify-center text-3xl font-bold text-urban-accent">
+                                                        {employee.first_name[0]}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setViewingPortfolio(employee);
-                                                }}
-                                                className="text-[10px] text-gray-500 mt-1 hover:text-urban-accent transition-colors z-20 relative"
-                                            >
-                                                Ver portafolio →
-                                            </button>
+
+                                            <h3 className="text-xl font-bold text-white mb-1">{employee.first_name}</h3>
+                                            <p className="text-xs text-urban-accent font-bold uppercase tracking-widest mb-3">{employee.title || 'Barber Pro'}</p>
+
+                                            {employee.bio && (
+                                                <p className="text-xs text-gray-400 text-center line-clamp-2 italic mb-4 px-2">
+                                                    "{employee.bio}"
+                                                </p>
+                                            )}
+
+                                            <div className="w-full pt-4 border-t border-white/5 flex items-center justify-center gap-2 text-sm text-gray-400 group-hover:text-white transition-colors">
+                                                <span>Seleccionar</span>
+                                                <ChevronRight size={16} className="text-urban-accent" />
+                                            </div>
                                         </div>
                                     </button>
                                 ))}
