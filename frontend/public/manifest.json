@@ -1,20 +1,11 @@
 {
-    "name": "TurnoPro",
-    "short_name": "TurnoPro",
-    "start_url": "/login",
+    "name": "Maestros del Estilo",
+    "short_name": "Maestros",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
+    "lang": "es",
+    "scope": "/",
     "theme_color": "#000000",
-    "icons": [
-        {
-            "src": "pwa-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "pwa-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
+    "icons": []
 }
