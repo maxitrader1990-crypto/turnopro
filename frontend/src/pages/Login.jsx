@@ -24,22 +24,22 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black flex">
-            {/* Left Side - Form */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-between px-8 sm:px-12 lg:px-24 bg-black relative z-10 py-10">
+        <div className="min-h-screen bg-black flex relative">
+            {/* Form Section - Overlay on mobile, Left side on desktop */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-between px-8 sm:px-12 lg:px-24 bg-black/85 lg:bg-black relative z-10 py-10 backdrop-blur-sm lg:backdrop-blur-none min-h-screen">
+                <div>
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-12">
+                        <div className="w-10 h-10 bg-gradient-to-br from-urban-accent to-yellow-600 rounded-lg flex items-center justify-center text-black font-bold text-xl shadow-lg shadow-yellow-500/20">
+                            M
+                        </div>
+                        <span className="text-2xl font-bold text-white tracking-tight">Maestros del Estilo</span>
+                    </div>
 
-                {/* Logo - Static positioning */}
-                <div className="flex justify-start">
-                    <span className="text-2xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent">
-                        Maestros del Estilo
-                    </span>
-                </div>
-
-                <div className="max-w-md w-full mx-auto my-auto">
                     <div className="mb-10">
-                        <h2 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
+                        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight">
                             Bienvenido
-                        </h2>
+                        </h1>
                         <p className="text-gray-400 text-lg">
                             Gestiona tu barbería con estilo profesional.
                         </p>
@@ -86,7 +86,7 @@ const Login = () => {
                             <div className="w-full border-t border-white/10"></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-black text-gray-500">O continúa con</span>
+                            <span className="px-4 bg-transparent lg:bg-black text-gray-400 font-medium">O continúa con</span>
                         </div>
                     </div>
 
@@ -111,12 +111,12 @@ const Login = () => {
                     </p>
                 </div>
 
-                {/* Footer placeholder to balance top logo */}
+                {/* Footer placeholder */}
                 <div className="hidden sm:block"></div>
             </div>
 
-            {/* Right Side - Image */}
-            <div className="hidden lg:block lg:w-1/2 relative overflow-hidden bg-zinc-900">
+            {/* Image Section - Background on mobile, Right side on desktop */}
+            <div className="absolute inset-0 lg:static lg:block lg:w-1/2 overflow-hidden bg-zinc-900 z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10 pointer-events-none"></div>
 
                 <img
@@ -126,7 +126,8 @@ const Login = () => {
                     loading="eager"
                 />
 
-                <div className="absolute bottom-10 right-10 z-20 text-right max-w-md pointer-events-none">
+                {/* Quote only visible on large screens or if space permits? visible on mobile might cover form, keep it but check z-index */}
+                <div className="hidden lg:block absolute bottom-10 right-10 z-20 text-right max-w-md pointer-events-none">
                     <p className="text-white text-3xl font-bold italic drop-shadow-lg">
                         "El estilo es una forma de decir quién eres sin tener que hablar."
                     </p>

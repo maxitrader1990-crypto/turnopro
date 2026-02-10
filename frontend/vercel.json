@@ -1,19 +1,22 @@
 {
+    "cleanUrls": true,
+    "framework": "vite",
     "rewrites": [
-        {
-            "source": "/manifest.json",
-            "destination": "/manifest.json"
-        },
-        {
-            "source": "/sw.js",
-            "destination": "/sw.js"
-        },
         {
             "source": "/((?!api/.*|.*\\..*).*)",
             "destination": "/index.html"
         }
     ],
     "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                }
+            ]
+        },
         {
             "source": "/manifest.json",
             "headers": [
