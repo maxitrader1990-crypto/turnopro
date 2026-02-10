@@ -107,51 +107,53 @@ export const AuthProvider = ({ children }) => {
 
 
 
-            // 1. Try 'business_users' (Admin/Owners) with TIMEOUT
+            // 1. Try 'business_users' (Admin/Owners)
             console.log("Step 2: Checking business_users...");
             let profile = null;
             try {
-                const checkBusinessPromise = supabase
+                // PRIMARIO: Buscar por user_id (Más seguro y rápido si hay indice)
+                let { data: businessData, error: businessError } = await supabase
                     .from('business_users')
                     .select('*')
-                    .eq('email', authUser.email)
-                    .order('created_at', { ascending: false }) // Prioritize recent business
-                    .limit(1)
+                    .eq('user_id', authUser.id)
                     .maybeSingle();
 
-                const businessTimeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Business User Check Timed Out')), 15000)
-                );
+                // SECUNDARIO: Si no encuentra por ID (ej. invitación por email antes de registrarse), buscar por email
+                if (!businessData && !businessError) {
+                    console.log("No business_user by ID. Checking by email...");
+                    const { data: emailData, error: emailError } = await supabase
+                        .from('business_users')
+                        .select('*')
+                        .eq('email', authUser.email)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
 
-                const { data: businessData, error: businessError } = await Promise.race([
-                    checkBusinessPromise,
-                    businessTimeoutPromise
-                ]);
+                    businessData = emailData;
+                    businessError = emailError;
+
+                    // Si encontramos por email pero no tenía user_id, vincularlo ahora
+                    if (businessData && !businessData.user_id) {
+                        await supabase.from('business_users').update({ user_id: authUser.id }).eq('id', businessData.id);
+                    }
+                }
 
                 if (businessError) console.error("Error fetching business_user:", businessError);
                 if (businessData) {
                     profile = businessData;
-                    console.log("Found business profile:", profile);
-                } else {
-                    console.log("No business profile found.");
                 }
             } catch (err) {
-                console.error("Business User Check Exception/Timeout:", err);
+                console.error("Business User Check Exception:", err);
             }
 
             if (profile) {
-                // 1. Fetch Subscription
+                // ... (Subscription logic remains same) ...
                 console.log("Step 3: Fetching Subscription...");
-                // Note: Subscription check is less critical, can fail gracefully if needed
-                const { data: subscription, error: subError } = await supabase
+                const { data: subscription } = await supabase
                     .from('subscriptions')
                     .select('*')
                     .eq('business_id', profile.business_id)
                     .maybeSingle();
-
-                console.log("Step 3 Result: Subscription found?", !!subscription);
-
-                if (subError) console.error("Error fetching subscription:", subError);
 
                 let subStatus = 'inactive';
                 let daysRemaining = 0;
@@ -167,16 +169,13 @@ export const AuthProvider = ({ children }) => {
                     } else if (subscription.status === 'past_due' || daysRemaining <= 0) {
                         subStatus = 'expired';
                     }
-                } else {
-                    // FIX: If no subscription exists for an existing business, give them a courtesy trial or mark specifically
-                    console.log("No subscription found for existing business. Defaulting to Inactive.");
                 }
 
                 setUser({
                     ...authUser,
                     ...profile,
                     role: 'admin',
-                    isSuperAdmin, // Add this flag
+                    isSuperAdmin,
                     subscription: {
                         ...subscription,
                         status: subStatus,
@@ -188,30 +187,33 @@ export const AuthProvider = ({ children }) => {
                 console.log("No business_user found. Step 4: Checking employees...");
                 let employee = null;
                 try {
-                    const checkEmployeePromise = supabase
+                    // Similar robust check for employees: ID first, then Email
+                    let { data: empData, error: empError } = await supabase
                         .from('employees')
                         .select('*')
-                        .or(`user_id.eq.${authUser.id},email.eq.${authUser.email}`)
+                        .eq('user_id', authUser.id)
                         .maybeSingle();
 
-                    const employeeTimeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Employee Check Timed Out')), 5000)
-                    );
+                    if (!empData && !empError) {
+                        const { data: empEmailData, error: empEmailError } = await supabase
+                            .from('employees')
+                            .select('*')
+                            .eq('email', authUser.email)
+                            .maybeSingle();
 
-                    const { data: empData, error: empError } = await Promise.race([
-                        checkEmployeePromise,
-                        employeeTimeoutPromise
-                    ]);
+                        empData = empEmailData;
+                        empError = empEmailError;
+                    }
 
                     if (empError) console.error("Error fetching employee:", empError);
                     if (empData) employee = empData;
 
                 } catch (err) {
-                    console.error("Employee Check Exception/Timeout:", err);
+                    console.error("Employee Check Exception:", err);
                 }
 
                 if (employee) {
-                    // If linked by email but not user_id yet, update user_id
+                    // Update user_id if missing
                     if (!employee.user_id) {
                         await supabase.from('employees').update({ user_id: authUser.id }).eq('id', employee.id);
                     }
