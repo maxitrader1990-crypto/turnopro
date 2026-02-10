@@ -466,6 +466,26 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const loginWithGoogle = async () => {
+        console.log("Initiating Google Login...");
+        const toastId = toast.loading('Abriendo Google...');
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
+                    redirectTo: window.location.origin
+                }
+            });
+            if (error) throw error;
+        } catch (error) {
+            toast.error(error.message || 'Error con Google');
+        }
+    };
+
     const logout = async () => {
         await supabase.auth.signOut();
         setUser(null);
@@ -476,6 +496,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         login,
+        loginWithGoogle,
         logout,
         register,
         refreshProfile, // Expose this
