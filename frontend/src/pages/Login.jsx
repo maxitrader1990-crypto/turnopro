@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import background from '../assets/login-bg.jpeg';
 
 const Login = () => {
     const { login, loginWithGoogle } = useAuth();
@@ -119,7 +120,7 @@ const Login = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10 pointer-events-none"></div>
 
                 <img
-                    src="https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=1000&auto=format&fit=crop"
+                    src={background}
                     alt="Barber Shop"
                     className="w-full h-full object-cover opacity-80"
                     loading="eager"
