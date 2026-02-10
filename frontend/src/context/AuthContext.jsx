@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
                     .maybeSingle();
 
                 const businessTimeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Business User Check Timed Out')), 5000)
+                    setTimeout(() => reject(new Error('Business User Check Timed Out')), 15000)
                 );
 
                 const { data: businessData, error: businessError } = await Promise.race([
@@ -355,11 +355,48 @@ export const AuthProvider = ({ children }) => {
                 );
 
                 // Employees (4 Default Staff)
+                // Employees (4 Default Staff)
                 const defaultEmployees = [
-                    { first_name: 'Barbero', last_name: 'Principal', role: 'admin', email: email, phone: '', biography: 'Dueño y barbero experto.', user_id: authData.user.id }, // Link owner as first employee
-                    { first_name: 'Estilista', last_name: 'Senior', role: 'barber', email: 'staff1@demo.com', phone: '', biography: 'Especialista en cortes clásicos y modernos.', user_id: null },
-                    { first_name: 'Especialista', last_name: 'Barba', role: 'barber', email: 'staff2@demo.com', phone: '', biography: 'Experto en rituales de barba y afeitado.', user_id: null },
-                    { first_name: 'Barbero', last_name: 'Junior', role: 'barber', email: 'staff3@demo.com', phone: '', biography: 'Talento en ascenso, cortes urbanos.', user_id: null }
+                    {
+                        first_name: 'Barbero',
+                        last_name: 'Principal',
+                        role: 'admin',
+                        email: email,
+                        phone: '',
+                        bio: 'Fundador y Maestro Barbero. Especialista en cortes clásicos y afeitado tradicional con toalla caliente.',
+                        profile_image_url: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+                        user_id: authData.user.id
+                    },
+                    {
+                        first_name: 'Estilista',
+                        last_name: 'Senior',
+                        role: 'barber',
+                        email: 'staff1@demo.com',
+                        phone: '',
+                        bio: 'Visionaria del color y las nuevas tendencias. Transformo tu look con las técnicas más modernas.',
+                        profile_image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+                        user_id: null
+                    },
+                    {
+                        first_name: 'Especialista',
+                        last_name: 'Barba',
+                        role: 'barber',
+                        email: 'staff2@demo.com',
+                        phone: '',
+                        bio: 'El arquitecto de la barba. Perfilado perfecto y cuidado de la piel para el caballero moderno.',
+                        profile_image_url: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+                        user_id: null
+                    },
+                    {
+                        first_name: 'Barbero',
+                        last_name: 'Junior',
+                        role: 'barber',
+                        email: 'staff3@demo.com',
+                        phone: '',
+                        bio: 'Talento joven con pasión por el detalle. Especialista en degradados y diseños urbanos.',
+                        profile_image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+                        user_id: null
+                    }
                 ];
 
                 await supabase.from('employees').insert(

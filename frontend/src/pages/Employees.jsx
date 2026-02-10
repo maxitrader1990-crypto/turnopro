@@ -60,7 +60,7 @@ const Employees = () => {
                 last_name: data.last_name,
                 email: data.email,
                 phone: data.phone,
-                photo: data.photo,
+                profile_image_url: data.profile_image_url,
                 bio: data.bio,
                 title: data.title,
                 is_active: true,
@@ -130,66 +130,103 @@ const Employees = () => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {isLoading ? (
                     <div className="col-span-full py-20 text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-urban-accent mx-auto"></div>
+                        <p className="text-gray-400 mt-4 animate-pulse">Cargando talento...</p>
                     </div>
                 ) : employees?.length === 0 ? (
-                    <div className="col-span-full card-premium p-12 text-center border-dashed border-2 border-white/10">
-                        <Users className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
-                        <p className="text-gray-400 text-lg">No hay profesionales registrados.</p>
-                        <p className="text-gray-500 text-sm">Añade a tu primer barbero estrella.</p>
+                    <div className="col-span-full card-premium p-12 text-center border-dashed border-2 border-white/10 group hover:border-urban-accent/30 transition-colors">
+                        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                            <Users className="w-10 h-10 text-gray-500 group-hover:text-urban-accent transition-colors" />
+                        </div>
+                        <p className="text-white text-xl font-bold mb-2">Tu equipo está vacío</p>
+                        <p className="text-gray-400 text-sm mb-6">Comienza a construir tu imperio añadiendo a tu primer profesional.</p>
+                        <button onClick={() => setIsModalOpen(true)} className="btn-urban text-sm py-2 px-6">
+                            + Añadir Primer Talento
+                        </button>
                     </div>
                 ) : (
                     employees?.map(emp => (
-                        <div key={emp.id} className="card-premium p-6 flex flex-col items-center hover:scale-[1.02] transition-all duration-300 relative group overflow-hidden">
-                            {/* Background flare */}
-                            <div className="absolute top-[-30%] right-[-30%] w-40 h-40 bg-urban-secondary/20 rounded-full blur-3xl pointer-events-none group-hover:bg-urban-secondary/30 transition-colors"></div>
+                        <div key={emp.id} className="relative group perspective-1000">
+                            <div className="card-premium p-0 overflow-hidden h-full flex flex-col transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_10px_40px_rgba(245,158,11,0.2)] border border-white/10 hover:border-urban-accent/50 bg-[#0f1115]">
 
-                            <button
-                                onClick={() => {
-                                    if (window.confirm('¿Eliminar a este profesional?')) deleteMutation.mutate(emp.id)
-                                }}
-                                className="absolute top-4 right-4 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                            >
-                                <Trash2 size={18} />
-                            </button>
+                                {/* Header Image / Gradient Background */}
+                                <div className="h-24 bg-gradient-to-tr from-gray-900 via-gray-800 to-black relative">
+                                    <div className="absolute inset-0 bg-urban-accent/5 pattern-grid-lg opacity-30"></div>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm('¿Eliminar a este profesional?')) deleteMutation.mutate(emp.id)
+                                        }}
+                                        className="absolute top-2 right-2 p-2 bg-black/40 hover:bg-red-500/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-sm opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100"
+                                        title="Eliminar Profesional"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
 
-                            <div className="relative mb-4">
-                                {emp.photo ? (
-                                    <img src={emp.photo} alt={emp.first_name} className="w-24 h-24 rounded-full object-cover border-4 border-white/5 shadow-2xl" />
-                                ) : (
-                                    <div className="w-24 h-24 bg-gradient-to-br from-gray-800 to-gray-900 rounded-full flex items-center justify-center text-3xl font-bold text-gray-500 border-4 border-white/5 shadow-2xl">
-                                        {emp.first_name?.[0]}
+                                {/* Avatar & Status */}
+                                <div className="relative px-6 -mt-12 mb-3 flex justify-center">
+                                    <div className="relative">
+                                        <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-b from-urban-accent to-transparent shadow-lg">
+                                            {emp.profile_image_url ? (
+                                                <img
+                                                    src={emp.profile_image_url}
+                                                    alt={emp.first_name}
+                                                    className="w-full h-full rounded-full object-cover border-4 border-[#0f1115] bg-gray-800"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = `https://ui-avatars.com/api/?name=${emp.first_name}+${emp.last_name}&background=1a1d21&color=f59e0b&size=256`;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full rounded-full border-4 border-[#0f1115] bg-gray-800 flex items-center justify-center text-3xl font-bold text-urban-accent">
+                                                    {emp.first_name?.[0]}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Status Dot */}
+                                        <div className={`absolute bottom-2 right-2 w-5 h-5 rounded-full border-4 border-[#0f1115] ${emp.is_active ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} title={emp.is_active ? 'Activo' : 'Inactivo'}></div>
                                     </div>
-                                )}
-                                <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-premium-card ${emp.is_active ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                            </div>
+                                </div>
 
-                            <h3 className="text-xl font-bold text-white tracking-wide">{emp.first_name} {emp.last_name}</h3>
-                            <p className="text-xs font-bold text-urban-accent uppercase tracking-widest mb-3">{emp.title || 'Staff'}</p>
-
-                            <p className="text-sm text-gray-400 text-center mb-6 line-clamp-2 px-2 italic font-light">
-                                "{emp.bio || 'Listo para trasformar tu estilo.'}"
-                            </p>
-
-                            <div className="mt-auto w-full space-y-3">
-                                {emp.phone && (
-                                    <div className="flex items-center justify-center gap-2 text-xs text-gray-300 bg-white/5 py-1.5 rounded-lg border border-white/5">
-                                        <Phone size={12} className="text-green-400" /> {emp.phone}
+                                {/* Content */}
+                                <div className="px-6 pb-6 flex-1 flex flex-col items-center text-center">
+                                    <h3 className="text-xl font-bold text-white tracking-wide mb-1">{emp.first_name} <span className="font-light text-gray-400">{emp.last_name}</span></h3>
+                                    <div className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-urban-accent uppercase tracking-widest mb-4 shadow-inner">
+                                        {emp.title || 'Staff Member'}
                                     </div>
-                                )}
-                                {emp.email && (
-                                    <div className="text-xs text-gray-500 text-center">{emp.email}</div>
-                                )}
 
-                                <button
-                                    onClick={() => setScheduleEmployee(emp)}
-                                    className="w-full flex items-center justify-center gap-2 btn-ghost-dark text-sm border-urban-accent/30 text-urban-accent hover:bg-urban-accent/10"
-                                >
-                                    <Calendar size={16} /> Gestionar Horarios
-                                </button>
+                                    <p className="text-sm text-gray-400 leading-relaxed mb-6 italic line-clamp-3 w-full">
+                                        "{emp.bio || 'Listo para trasformar tu estilo. Profesional dedicado a la excelencia.'}"
+                                    </p>
+
+                                    {/* Contact Info Compact */}
+                                    <div className="w-full space-y-2 mb-6 text-xs text-gray-500">
+                                        {emp.phone && (
+                                            <div className="flex items-center justify-center gap-2 opacity-70 hover:opacity-100 transition-opacity">
+                                                <Phone size={12} className="text-green-500" /> {emp.phone}
+                                            </div>
+                                        )}
+                                        {emp.email && (
+                                            <div className="truncate opacity-70 hover:opacity-100 transition-opacity">
+                                                {emp.email}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="mt-auto w-full pt-4 border-t border-white/5">
+                                        <button
+                                            onClick={() => setScheduleEmployee(emp)}
+                                            className="w-full group/btn flex items-center justify-center gap-2 bg-transparent hover:bg-urban-accent text-urban-accent hover:text-black py-2.5 rounded-lg border border-urban-accent/30 hover:border-urban-accent transition-all font-bold text-sm"
+                                        >
+                                            <Calendar size={16} className="group-hover/btn:scale-110 transition-transform" />
+                                            Gestionar Horarios
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )))}
@@ -222,7 +259,7 @@ const Employees = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Url Foto (Opcional)</label>
-                        <input {...register('photo')} placeholder="https://..." className="mt-1 block w-full input-urban text-black" />
+                        <input {...register('profile_image_url')} placeholder="https://..." className="mt-1 block w-full input-urban text-black" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Biografía Corta</label>
