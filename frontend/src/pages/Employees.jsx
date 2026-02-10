@@ -31,8 +31,15 @@ const Employees = () => {
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [scheduleEmployee, setScheduleEmployee] = useState(null);
-    const { register, handleSubmit, reset } = useForm();
+    const { register, handleSubmit, reset, setValue } = useForm();
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedEmployee(null);
+        reset();
+    };
 
     // Fetch Employees
     const { data: employees, isLoading } = useQuery({
@@ -110,7 +117,39 @@ const Employees = () => {
         onError: (err) => toast.error('Error guardando horarios')
     });
 
-    const onSubmit = (data) => createMutation.mutate(data);
+    // Update Mutation
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, ...data }) => {
+            const { error } = await supabase.from('employees').update(data).eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['employees']);
+            toast.success('Actualizado correctamente');
+            closeModal();
+        },
+        onError: (err) => toast.error('Error: ' + err.message)
+    });
+
+    const onSubmit = (data) => {
+        if (selectedEmployee) {
+            updateMutation.mutate({ id: selectedEmployee.id, ...data });
+        } else {
+            createMutation.mutate(data);
+        }
+    };
+
+    const handleEdit = (employee) => {
+        setSelectedEmployee(employee);
+        setValue('first_name', employee.first_name);
+        setValue('last_name', employee.last_name);
+        setValue('email', employee.email);
+        setValue('phone', employee.phone);
+        setValue('title', employee.title);
+        setValue('profile_image_url', employee.profile_image_url);
+        setValue('bio', employee.bio);
+        setIsModalOpen(true);
+    };
 
     return (
         <div className="animate-fade-in-up">
@@ -224,6 +263,12 @@ const Employees = () => {
                                         >
                                             <Calendar size={16} className="group-hover/btn:scale-110 transition-transform" />
                                             Gestionar Horarios
+                                        </button>
+                                        <button
+                                            onClick={() => handleEdit(emp)}
+                                            className="w-full mt-2 group/btn flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white py-2 rounded-lg border border-white/5 transition-all text-sm font-medium"
+                                        >
+                                            Editar Perfil
                                         </button>
                                     </div>
                                 </div>
@@ -407,3 +452,54 @@ const ScheduleEditor = ({ initialSchedule, onSave, onCancel }) => {
 };
 
 export default Employees;
+
+// Subcomponent for listing portfolio items
+const PortfolioList = ({ employeeId, businessId }) => {
+    const queryClient = useQueryClient();
+    const { data: items, isLoading } = useQuery({
+        queryKey: ['portfolio', employeeId],
+        queryFn: async () => {
+            const { data } = await supabase
+                .from('portfolio_items')
+                .select('*')
+                .eq('employee_id', employeeId)
+                .order('created_at', { ascending: false });
+            return data || [];
+        },
+        enabled: !!employeeId
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id) => {
+            const { error } = await supabase.from('portfolio_items').delete().eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            toast.success("Foto eliminada");
+            queryClient.invalidateQueries(['portfolio', employeeId]);
+        }
+    });
+
+    if (isLoading) return <p className="text-sm text-gray-500">Cargando portafolio...</p>;
+
+    if (items?.length === 0) return <p className="text-sm text-gray-500 italic">No hay fotos en el portafolio aún.</p>;
+
+    return (
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+            {items?.map(item => (
+                <div key={item.id} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
+                    <img src={item.image_url} alt="Portfolio" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                            type="button"
+                            onClick={() => deleteMutation.mutate(item.id)}
+                            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
