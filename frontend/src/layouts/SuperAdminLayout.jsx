@@ -92,8 +92,11 @@ const SuperAdminLayout = () => {
                             </div>
                         </div>
                         <div className="overflow-hidden">
+                            <span className="text-2xl font-black bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent tracking-tight">
+                                Maestros del Estilo <span className="text-xs text-gray-500 font-bold ml-1">ADMIN</span>
+                            </span>
                             <p className="text-sm font-bold text-white truncate">{user.email}</p>
-                            <p className="text-xs text-green-400 flex items-center gap-1">
+                            <p className="text-xs text-gray-500 flex items-center gap-1">
                                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                 Online
                             </p>
@@ -120,7 +123,7 @@ const SuperAdminLayout = () => {
             <div className="flex-1 ml-64 p-8 overflow-y-auto">
                 <Outlet />
             </div>
-        </div>
+        </div >
     );
 };
 

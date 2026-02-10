@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Login = () => {
     const { login, loginWithGoogle } = useAuth();
@@ -9,119 +10,131 @@ const Login = () => {
         email: '',
         password: ''
     });
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         const success = await login(formData.email, formData.password);
         if (success) {
-            // Role-based redirect is handled inside login() or here if we had the user object immediately.
-            // Since login() updates state asynchronously, we might need to check user role or rely on AuthContext. 
-            // Better: Let's assume standard redirect and let ProtectedRoute handle it OR fetch user here.
-
-            // However, login() in AuthContext returns true/false.
-            // Let's modify redirection to check role if possible, or default to root which ProtectedRoute handles.
-            // But ProtectedRoute for /dashboard redirects to /onboarding if no business.
-            // So we must redirect to /superadmin explicitly if needed.
-
-            // We don't have the user object here easily without race conditions.
-            // BUT, we can simply redirect to '/' and let the router decide?
-            // ProtectedRoute for '/' redirects to '/dashboard'.
-
-            // Let's hard reload or simple redirect.
-            // Ideally, we should check the user role.
-            // We can get the user from supabase directly to be sure.
             navigate('/');
         }
+        setLoading(false);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0 bg-premium-bg z-0"></div>
-            <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-urban-secondary/20 rounded-full blur-[120px] animate-pulse-slow"></div>
-            <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-urban-accent/10 rounded-full blur-[100px] animate-pulse-slow delay-100"></div>
+        <div className="min-h-screen bg-black flex">
+            {/* Left Side - Form */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-12 lg:px-24 bg-black relative z-10">
 
-            <div className="max-w-md w-full card-premium p-8 relative z-10 animate-fade-in-up border-white/10">
-                <div className="text-center mb-8">
-                    <h2 className="text-4xl font-bold text-white tracking-tight drop-shadow-lg">Bienvenido</h2>
-                    <p className="text-gray-400 mt-2 text-lg">Inicia sesión en tu cuenta</p>
+                <div className="absolute top-10 left-8 sm:left-12 lg:left-24">
+                    <span className="text-2xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent transform hover:scale-105 transition-transform cursor-default">
+                        Maestros del Estilo
+                    </span>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1 ml-1">Email</label>
-                        <input
-                            type="email"
-                            required
-                            className="w-full input-urban"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="nombre@ejemplo.com"
-                        />
+                <div className="max-w-md w-full mx-auto">
+                    <div className="mb-10">
+                        <h2 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
+                            Bienvenido
+                        </h2>
+                        <p className="text-gray-400 text-lg">
+                            Gestiona tu barbería con estilo profesional.
+                        </p>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1 ml-1">Contraseña</label>
-                        <input
-                            type="password"
-                            required
-                            className="w-full input-urban"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            placeholder="••••••••"
-                        />
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-300 mb-2 ml-1 uppercase tracking-wide">Email</label>
+                            <input
+                                type="email"
+                                required
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-urban-accent focus:border-transparent transition-all"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="tu@email.com"
+                            />
+                        </div>
+                        <div>
+                            <div className="flex justify-between items-center mb-2 ml-1">
+                                <label className="block text-sm font-bold text-gray-300 uppercase tracking-wide">Contraseña</label>
+                                <a href="#" className="text-xs text-urban-accent hover:text-white transition-colors">¿Olvidaste tu contraseña?</a>
+                            </div>
+                            <input
+                                type="password"
+                                required
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-urban-accent focus:border-transparent transition-all"
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-urban-accent to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black font-bold py-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                        >
+                            {loading ? 'Iniciando...' : 'Iniciar Sesión'}
+                        </button>
+                    </form>
+
+                    <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-white/10"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-black text-gray-500">O continúa con</span>
+                        </div>
                     </div>
 
                     <button
-                        type="submit"
-                        className="w-full btn-urban flex justify-center items-center mt-4"
+                        onClick={() => loginWithGoogle()}
+                        className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white text-gray-900 border border-gray-300 rounded-xl hover:bg-gray-100 font-bold transition-all hover:scale-[1.02]"
                     >
-                        Iniciar Sesión con Email
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z" fill="#FBBC05" />
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                        </svg>
+                        Google
                     </button>
-                </form>
 
-                <div className="relative my-8">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-white/10" />
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-3 bg-premium-surface/50 backdrop-blur-sm text-gray-400 rounded-full">O continúa con</span>
-                    </div>
-                </div>
-
-                <button
-                    onClick={() => loginWithGoogle()}
-                    className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-white/10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition-all hover:scale-[1.02] shadow-lg"
-                >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                            fill="#4285F4"
-                        />
-                        <path
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                            fill="#34A853"
-                        />
-                        <path
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z"
-                            fill="#FBBC05"
-                        />
-                        <path
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                            fill="#EA4335"
-                        />
-                    </svg>
-                    Google
-                </button>
-
-                <div className="mt-8 text-center">
-                    <p className="text-sm text-gray-500">
-                        ¿No tienes cuenta?{' '}
-                        <Link to="/onboarding" className="font-medium text-urban-accent hover:text-urban-accent/80 transition-colors uppercase tracking-wide text-xs">
-                            Regístrate gratis
+                    <p className="mt-8 text-center text-gray-500">
+                        ¿Aún no tienes cuenta?{' '}
+                        <Link to="/onboarding" className="font-bold text-urban-accent hover:text-white transition-colors">
+                            Crea tu cuenta gratis
                         </Link>
                     </p>
                 </div>
             </div>
+
+            {/* Right Side - Image */}
+            <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-l from-black via-transparent to-transparent z-10"></div>
+                <img
+                    src="https://images.unsplash.com/photo-1585747860715-28b9634317a2?q=80&w=2070&auto=format&fit=crop"
+                    alt="Barber Shop Atmosphere"
+                    className="w-full h-full object-cover animate-ken-burns"
+                />
+                <div className="absolute bottom-10 right-10 z-20 text-right max-w-md">
+                    <p className="text-white text-3xl font-bold italic">
+                        "El estilo es una forma de decir quién eres sin tener que hablar."
+                    </p>
+                    <p className="text-urban-accent mt-2 font-semibold">— Maestros del Estilo</p>
+                </div>
+            </div>
+
+            <style>{`
+                @keyframes ken-burns {
+                    0% { transform: scale(1); }
+                    100% { transform: scale(1.1); }
+                }
+                .animate-ken-burns {
+                    animation: ken-burns 20s ease-out infinite alternate;
+                }
+            `}</style>
         </div>
     );
 };

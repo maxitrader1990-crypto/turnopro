@@ -158,6 +158,28 @@ const OnboardingPage = () => {
                             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300" /></div>
                             <div className="relative flex justify-center text-sm"><span className="px-2 bg-gray-50 text-gray-500">O con email</span></div>
                         </div>
+
+                        <div className="mt-4 text-center">
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    toast.loading("Buscando tu negocio...", { id: 'refreshing' });
+                                    await refreshProfile();
+
+                                    // Check status after refresh
+                                    const { data: { session } } = await supabase.auth.getSession();
+                                    if (user?.business_id || session?.user?.user_metadata?.business_id) {
+                                        toast.success("¡Negocio encontrado!", { id: 'refreshing' });
+                                        navigate('/dashboard', { replace: true });
+                                    } else {
+                                        toast.error("No se detectó ningún negocio. Por favor crea uno.", { id: 'refreshing' });
+                                    }
+                                }}
+                                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                            >
+                                ¿Ya tienes un negocio? Recargar perfil
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -174,7 +196,7 @@ const OnboardingPage = () => {
                             <label className="block text-sm font-medium text-gray-700">URL Personalizada</label>
                             <div className="mt-1 flex rounded-md shadow-sm">
                                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
-                                    turnopro.com/p/
+                                    maestrosdelestilo.com/p/
                                 </span>
                                 <input {...register('slug', { required: false })} className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 p-2" placeholder="slug-automatico" />
                             </div>
@@ -223,7 +245,7 @@ const OnboardingPage = () => {
             <div className="mt-8 text-center text-xs text-gray-500">
                 Desarrollado por <span className="font-semibold text-gray-700">Patagonia Automatiza</span>
             </div>
-        </div>
+        </div >
     );
 };
 

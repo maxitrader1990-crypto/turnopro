@@ -36,7 +36,9 @@ const Sidebar = () => {
 
         <div className="h-screen w-64 bg-gradient-to-b from-gray-900 to-black text-white flex flex-col fixed left-0 top-0 border-r border-white/10 shadow-2xl z-50">
             <div className="p-6 border-b border-white/5">
-                <h1 className="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">TurnoPro</h1>
+                <span className="text-xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent">
+                    Maestros del Estilo
+                </span>
                 <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">{user?.business_id ? 'Admin Panel' : 'Super Admin'}</p>
             </div>
 
