@@ -115,17 +115,17 @@ const Login = () => {
             </div>
 
             {/* Right Side - Image */}
-            <div className="hidden lg:block lg:w-1/2 relative overflow-hidden bg-gray-900">
-                {/* Gradient Fix: From Black (Left) to Transparent (Right) - Adjusted usage */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent z-10"></div>
+            <div className="hidden lg:block lg:w-1/2 relative overflow-hidden bg-zinc-900">
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10 pointer-events-none"></div>
 
                 <img
-                    src="https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=2070&auto=format&fit=crop"
-                    alt="Barber Shop Atmosphere"
-                    className="w-full h-full object-cover animate-ken-burns opacity-90"
+                    src="https://images.unsplash.com/photo-1503951914875-452162b7f304?q=80&w=1000&auto=format&fit=crop"
+                    alt="Barber Shop"
+                    className="w-full h-full object-cover opacity-80"
+                    loading="eager"
                 />
 
-                <div className="absolute bottom-10 right-10 z-20 text-right max-w-md">
+                <div className="absolute bottom-10 right-10 z-20 text-right max-w-md pointer-events-none">
                     <p className="text-white text-3xl font-bold italic drop-shadow-lg">
                         "El estilo es una forma de decir quién eres sin tener que hablar."
                     </p>
