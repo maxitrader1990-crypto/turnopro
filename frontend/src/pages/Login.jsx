@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import background from '../assets/login-bg.jpeg';
+import InstallPWA from '../components/InstallPWA';
 
 const Login = () => {
     const { login, loginWithGoogle } = useAuth();
@@ -102,6 +103,10 @@ const Login = () => {
                         </svg>
                         Google
                     </button>
+
+                    <div className="mt-8">
+                        <InstallPWA />
+                    </div>
 
                     <p className="mt-8 text-center text-gray-500">
                         ¿Aún no tienes cuenta?{' '}

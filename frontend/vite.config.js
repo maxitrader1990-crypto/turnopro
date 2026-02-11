@@ -11,7 +11,7 @@ export default defineConfig({
             devOptions: {
                 enabled: true
             },
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'logo-192.png', 'logo-512.png'],
+            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
             manifest: {
                 name: 'Maestros del Estilo',
                 short_name: 'Maestros',
@@ -24,17 +24,17 @@ export default defineConfig({
                 scope: '/',
                 icons: [
                     {
-                        src: 'logo-192.png',
+                        src: 'pwa-192x192.png',
                         sizes: '192x192',
                         type: 'image/png'
                     },
                     {
-                        src: 'logo-512.png',
+                        src: 'pwa-512x512.png',
                         sizes: '512x512',
                         type: 'image/png'
                     },
                     {
-                        src: 'logo-512.png',
+                        src: 'pwa-512x512.png',
                         sizes: '512x512',
                         type: 'image/png',
                         purpose: 'maskable'

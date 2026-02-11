@@ -68,41 +68,17 @@ const InstallPWA = () => {
         }
     };
 
-    // Debug info
-    const debugInfo = (
-        <div className="text-[10px] text-gray-500 mt-2 text-center font-mono bg-black/50 p-2 rounded">
-            DEBUG: iOS:{isIOS ? 'Y' : 'N'} | Installed:{isInstalled ? 'Y' : 'N'} | Prompt:{deferredPrompt ? 'Y' : 'N'}
-        </div>
-    );
-
-    if (isInstalled) {
-        return (
-            <div className="mb-6">
-                <button
-                    type="button"
-                    disabled
-                    className="w-full bg-green-900/50 text-green-200 font-bold py-3 px-4 rounded-lg border border-green-700/50 flex items-center justify-center gap-2 cursor-not-allowed"
-                >
-                    <Download className="w-6 h-6" />
-                    App Ya Instalada
-                </button>
-                {debugInfo}
-            </div>
-        );
-    }
+    if (isInstalled) return null;
 
     return (
-        <div className="mb-6">
-            <button
-                type="button"
-                onClick={handleInstallClick}
-                className="w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:from-yellow-700 hover:to-yellow-900 transition-all duration-300 flex items-center justify-center gap-2"
-            >
-                <Download className="w-6 h-6" />
-                Instalar Aplicación
-            </button>
-            {debugInfo}
-        </div>
+        <button
+            type="button"
+            onClick={handleInstallClick}
+            className="w-full bg-gradient-to-r from-yellow-600 to-yellow-800 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:from-yellow-700 hover:to-yellow-900 transition-all duration-300 flex items-center justify-center gap-2 mb-6 animate-pulse"
+        >
+            <Download className="w-5 h-5" />
+            Instalar App
+        </button>
     );
 };
 

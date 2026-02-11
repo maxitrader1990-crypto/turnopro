@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Users, Calendar, Trophy, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import InstallPWA from '../components/InstallPWA';
 
 // Stats Card Component
 const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
@@ -135,6 +136,7 @@ const Dashboard = () => {
 
     return (
         <div className="">
+            <InstallPWA />
             <div className="mb-8 flex items-end justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">Panel Principal</h1>
