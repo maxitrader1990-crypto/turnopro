@@ -1,30 +1,38 @@
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import SplashScreen from './components/SplashScreen';
+
+// Initial Load Critical Components
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Services from './pages/Services';
-import Employees from './pages/Employees';
-import Gamification from './pages/Gamification';
-import Customers from './pages/Customers';
-import CalendarPage from './pages/Calendar';
-import Settings from './pages/Settings';
 import Layout from './components/Layout';
-import OnboardingPage from './pages/Public/OnboardingPage';
-import BookingPage from './pages/Public/BookingPage';
-import CustomerPointsPage from './pages/Public/CustomerPointsPage';
-import Reports from './pages/Reports';
 
-import BarberLayout from './pages/Barber/BarberLayout';
-import BarberDashboard from './pages/Barber/Dashboard';
-import BarberPortfolio from './pages/Barber/Portfolio';
+// Lazy Load Pages
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Services = lazy(() => import('./pages/Services'));
+const Employees = lazy(() => import('./pages/Employees'));
+const Gamification = lazy(() => import('./pages/Gamification'));
+const Customers = lazy(() => import('./pages/Customers'));
+const CalendarPage = lazy(() => import('./pages/Calendar'));
+const Settings = lazy(() => import('./pages/Settings'));
+const OnboardingPage = lazy(() => import('./pages/Public/OnboardingPage'));
+const BookingPage = lazy(() => import('./pages/Public/BookingPage'));
+const CustomerPointsPage = lazy(() => import('./pages/Public/CustomerPointsPage'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Billing = lazy(() => import('./pages/Billing'));
 
-import Billing from './pages/Billing';
-import SuperAdminLayout from './layouts/SuperAdminLayout';
-import SuperAdminDashboard from './pages/SuperAdmin/Dashboard';
-import BusinessList from './pages/SuperAdmin/BusinessList';
-import SuperAdminPayments from './pages/SuperAdmin/Payments';
-import SuperAdminAudit from './pages/SuperAdmin/Audit';
-import SuperAdminRecovery from './pages/SuperAdmin/Recovery';
+// Barber Pages
+const BarberLayout = lazy(() => import('./pages/Barber/BarberLayout'));
+const BarberDashboard = lazy(() => import('./pages/Barber/Dashboard'));
+const BarberPortfolio = lazy(() => import('./pages/Barber/Portfolio'));
+
+// Super Admin Pages
+const SuperAdminLayout = lazy(() => import('./layouts/SuperAdminLayout'));
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdmin/Dashboard'));
+const BusinessList = lazy(() => import('./pages/SuperAdmin/BusinessList'));
+const SuperAdminPayments = lazy(() => import('./pages/SuperAdmin/Payments'));
+const SuperAdminAudit = lazy(() => import('./pages/SuperAdmin/Audit'));
+const SuperAdminRecovery = lazy(() => import('./pages/SuperAdmin/Recovery'));
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -100,50 +108,52 @@ function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/onboarding" element={<OnboardingPage />} />
-                    <Route path="/book/:slug" element={<BookingPage />} />
-                    <Route path="/points/:slug" element={<CustomerPointsPage />} />
+                <Suspense fallback={<SplashScreen />}>
+                    <Routes>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/onboarding" element={<OnboardingPage />} />
+                        <Route path="/book/:slug" element={<BookingPage />} />
+                        <Route path="/points/:slug" element={<CustomerPointsPage />} />
 
-                    {/* Admin Routes */}
-                    <Route element={<ProtectedRoute />}>
-                        <Route element={<Layout />}>
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/services" element={<Services />} />
-                            <Route path="/employees" element={<Employees />} />
-                            <Route path="/gamification" element={<Gamification />} />
-                            <Route path="/customers" element={<Customers />} />
-                            <Route path="/calendar" element={<CalendarPage />} />
-                            <Route path="/reports" element={<Reports />} />
-                            <Route path="/settings" element={<Settings />} />
-                            <Route path="/settings/billing" element={<Billing />} />
+                        {/* Admin Routes */}
+                        <Route element={<ProtectedRoute />}>
+                            <Route element={<Layout />}>
+                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/services" element={<Services />} />
+                                <Route path="/employees" element={<Employees />} />
+                                <Route path="/gamification" element={<Gamification />} />
+                                <Route path="/customers" element={<Customers />} />
+                                <Route path="/calendar" element={<CalendarPage />} />
+                                <Route path="/reports" element={<Reports />} />
+                                <Route path="/settings" element={<Settings />} />
+                                <Route path="/settings/billing" element={<Billing />} />
+                            </Route>
                         </Route>
-                    </Route>
 
-                    {/* Barber Routes */}
-                    <Route element={<BarberRoute />}>
-                        <Route path="/barber" element={<BarberLayout />}>
-                            <Route index element={<Navigate to="/barber/dashboard" replace />} />
-                            <Route path="dashboard" element={<BarberDashboard />} />
-                            <Route path="portfolio" element={<BarberPortfolio />} />
+                        {/* Barber Routes */}
+                        <Route element={<BarberRoute />}>
+                            <Route path="/barber" element={<BarberLayout />}>
+                                <Route index element={<Navigate to="/barber/dashboard" replace />} />
+                                <Route path="dashboard" element={<BarberDashboard />} />
+                                <Route path="portfolio" element={<BarberPortfolio />} />
+                            </Route>
                         </Route>
-                    </Route>
 
 
-                    {/* Super Admin Routes */}
-                    <Route element={<SuperAdminRoute />}>
-                        <Route path="/superadmin" element={<SuperAdminLayout />}>
-                            <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
-                            <Route path="dashboard" element={<SuperAdminDashboard />} />
-                            <Route path="businesses" element={<BusinessList />} />
-                            <Route path="payments" element={<SuperAdminPayments />} />
-                            <Route path="audit" element={<SuperAdminAudit />} />
-                            <Route path="recovery" element={<SuperAdminRecovery />} />
+                        {/* Super Admin Routes */}
+                        <Route element={<SuperAdminRoute />}>
+                            <Route path="/superadmin" element={<SuperAdminLayout />}>
+                                <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
+                                <Route path="dashboard" element={<SuperAdminDashboard />} />
+                                <Route path="businesses" element={<BusinessList />} />
+                                <Route path="payments" element={<SuperAdminPayments />} />
+                                <Route path="audit" element={<SuperAdminAudit />} />
+                                <Route path="recovery" element={<SuperAdminRecovery />} />
+                            </Route>
                         </Route>
-                    </Route>
-                </Routes>
+                    </Routes>
+                </Suspense>
             </AuthProvider>
         </BrowserRouter>
     );

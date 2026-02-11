@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Users, Calendar, Trophy, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import InstallPWA from '../components/InstallPWA';
+import SkeletonCard from '../components/SkeletonCard';
+import SkeletonTable from '../components/SkeletonTable';
 
 // Stats Card Component
 const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
@@ -146,34 +148,45 @@ const Dashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard
-                    title="Citas Totales"
-                    value={isLoadingStats ? "..." : formatNumber(stats?.appointments)}
-                    icon={Calendar}
-                    color="bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                    onClick={() => navigate('/calendar')}
-                />
-                <StatCard
-                    title="Clientes Activos"
-                    value={isLoadingStats ? "..." : formatNumber(stats?.customers)}
-                    icon={Users}
-                    color="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    onClick={() => navigate('/customers')}
-                />
-                <StatCard
-                    title="Puntos Otorgados"
-                    value={isLoadingStats ? "..." : formatNumber(stats?.points)}
-                    icon={Trophy}
-                    color="bg-urban-secondary/20 text-urban-secondary border border-urban-secondary/30"
-                    onClick={() => navigate('/gamification')}
-                />
-                <StatCard
-                    title="Ingresos Mensuales"
-                    value={isLoadingStats ? "..." : formatCurrency(stats?.revenue)}
-                    icon={TrendingUp}
-                    color="bg-urban-accent/20 text-urban-accent border border-urban-accent/30"
-                    onClick={() => navigate('/reports')}
-                />
+                {isLoadingStats ? (
+                    <>
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                    </>
+                ) : (
+                    <>
+                        <StatCard
+                            title="Citas Totales"
+                            value={formatNumber(stats?.appointments)}
+                            icon={Calendar}
+                            color="bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                            onClick={() => navigate('/calendar')}
+                        />
+                        <StatCard
+                            title="Clientes Activos"
+                            value={formatNumber(stats?.customers)}
+                            icon={Users}
+                            color="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            onClick={() => navigate('/customers')}
+                        />
+                        <StatCard
+                            title="Puntos Otorgados"
+                            value={formatNumber(stats?.points)}
+                            icon={Trophy}
+                            color="bg-urban-secondary/20 text-urban-secondary border border-urban-secondary/30"
+                            onClick={() => navigate('/gamification')}
+                        />
+                        <StatCard
+                            title="Ingresos Mensuales"
+                            value={formatCurrency(stats?.revenue)}
+                            icon={TrendingUp}
+                            color="bg-urban-accent/20 text-urban-accent border border-urban-accent/30"
+                            onClick={() => navigate('/reports')}
+                        />
+                    </>
+                )}
             </div>
 
             <div className="card-premium p-8 border-t-4 border-t-urban-accent">
@@ -183,7 +196,7 @@ const Dashboard = () => {
                 </div>
 
                 {isLoading ? (
-                    <div className="text-center py-10 text-gray-500 animate-pulse">Cargando datos en vivo...</div>
+                    <SkeletonTable rows={5} />
                 ) : recentAppointments?.length > 0 ? (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">

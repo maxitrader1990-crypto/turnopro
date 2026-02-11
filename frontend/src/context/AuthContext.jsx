@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import toast from 'react-hot-toast';
+import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext();
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
                 }
                 return currentLoading;
             });
-        }, 12000); // Increased to 12 seconds to account for multiple sequential timeouts
+        }, 8000); // 8 seconds safety timeout
 
         // Check active session
         checkSession().finally(() => clearTimeout(safetyTimeout));
@@ -498,7 +499,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={value}>
-            {!loading && children}
+            {loading ? <SplashScreen /> : children}
         </AuthContext.Provider>
     );
 };
