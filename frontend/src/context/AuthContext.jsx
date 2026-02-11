@@ -160,12 +160,14 @@ export const AuthProvider = ({ children }) => {
 
                 if (subscription) {
                     const now = new Date();
-                    const end = new Date(subscription.current_period_end);
+                    const end = new Date(subscription.current_period_end); // or subscription.trial_end_date if available
                     const diffTime = end - now;
                     daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                     if (subscription.status === 'active' && daysRemaining > 0) {
                         subStatus = 'active';
+                    } else if (subscription.status === 'trial' && daysRemaining > 0) {
+                        subStatus = 'trial';
                     } else if (subscription.status === 'past_due' || daysRemaining <= 0) {
                         subStatus = 'expired';
                     }
@@ -432,19 +434,9 @@ export const AuthProvider = ({ children }) => {
                     await supabase.from('portfolio_items').insert(portfolioInserts);
                 }
 
-                // 5. Create Free Trial Subscription (30 Days)
-                const startDate = new Date();
-                const endDate = new Date();
-                endDate.setDate(startDate.getDate() + 30); // Add 30 days
+                // 5. Create Free Trial Subscription (Handled by DB Trigger now)
+                // The trigger 'on_business_created_add_subscription' will automatically add the subscription.
 
-                await supabase.from('subscriptions').insert({
-                    business_id: business.id,
-                    plan_type: 'premium', // Grant full access
-                    status: 'active',
-                    current_period_start: startDate.toISOString(),
-                    current_period_end: endDate.toISOString(),
-                    cancel_at_period_end: false
-                });
             }
 
             // Check if session was created immediately (Email Confirm Disabled)
