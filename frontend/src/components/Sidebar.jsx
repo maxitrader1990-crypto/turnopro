@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import clsx from 'clsx';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
     const { logout, user } = useAuth();
 
     const links = [
@@ -25,21 +25,33 @@ const Sidebar = () => {
         { to: '/calendar', label: 'Calendario', icon: Calendar },
         { to: '/employees', label: 'Empleados', icon: UserCog },
         { to: '/services', label: 'Servicios', icon: Scissors },
-        // Only show Gamification if business has it enabled (UI logic later) 
-        // For now show all
         { to: '/gamification', label: 'Gamificación', icon: Trophy },
         { to: '/settings/billing', label: 'Suscripción', icon: CreditCard },
         { to: '/settings', label: 'Configuración', icon: Settings },
     ];
 
-    return (
+    const handleLinkClick = () => {
+        if (onClose && window.innerWidth < 1024) {
+            onClose();
+        }
+    };
 
-        <div className="h-screen w-64 bg-gradient-to-b from-gray-900 to-black text-white flex flex-col fixed left-0 top-0 border-r border-white/10 shadow-2xl z-50">
-            <div className="p-6 border-b border-white/5">
-                <span className="text-xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent">
-                    Maestros del Estilo
-                </span>
-                <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">{user?.business_id ? 'Admin Panel' : 'Super Admin'}</p>
+    return (
+        <div className={clsx(
+            "h-screen w-64 bg-gradient-to-b from-gray-900 to-black text-white flex flex-col fixed left-0 top-0 border-r border-white/10 shadow-2xl z-50 transition-transform duration-300 ease-in-out lg:translate-x-0",
+            isOpen ? "translate-x-0" : "-translate-x-full mb-0"
+        )}>
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                <div>
+                    <span className="text-xl font-black bg-gradient-to-r from-urban-accent to-urban-gold bg-clip-text text-transparent">
+                        Maestros del Estilo
+                    </span>
+                    <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">{user?.business_id ? 'Admin Panel' : 'Super Admin'}</p>
+                </div>
+                {/* Close button for mobile */}
+                <button onClick={onClose} className="lg:hidden text-gray-400 hover:text-white">
+                    <LogOut size={20} className="rotate-180" /> {/* Reusing Icon as "Back" or "Close" metaphor implies exiting menu */}
+                </button>
             </div>
 
             <nav className="flex-1 px-4 space-y-2 overflow-y-auto py-6">
@@ -47,6 +59,7 @@ const Sidebar = () => {
                     <NavLink
                         key={link.to}
                         to={link.to}
+                        onClick={handleLinkClick}
                         className={({ isActive }) => clsx(
                             "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium group relative overflow-hidden",
                             isActive

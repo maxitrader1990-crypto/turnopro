@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-premium-bg text-text-primary antialiased font-sans overflow-x-hidden;
+  html, body, #root {
+    @apply bg-premium-bg text-text-primary antialiased font-sans overflow-x-hidden w-full;
     /* Custom Scrollbar for Webkit */
   }
 
