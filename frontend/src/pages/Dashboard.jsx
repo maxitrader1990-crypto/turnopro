@@ -45,45 +45,36 @@ const Dashboard = () => {
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
 
-            // 1. Total Appointments
-            const { count: appointmentsCount, error: appError } = await supabase
-                .from('appointments')
-                .select('*', { count: 'exact', head: true })
-                .eq('business_id', user.business_id);
+            // PARALLEL: Execute all 4 queries simultaneously
+            const [
+                { count: appointmentsCount, error: appError },
+                { count: customersCount, error: custError },
+                { data: customersData, error: pointsError },
+                { data: revenueData, error: revError }
+            ] = await Promise.all([
+                // 1. Total Appointments
+                supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('business_id', user.business_id),
+
+                // 2. Customers Count
+                supabase.from('customers').select('*', { count: 'exact', head: true }).eq('business_id', user.business_id),
+
+                // 3. Points Sum
+                supabase.from('customers').select('points').eq('business_id', user.business_id),
+
+                // 4. Monthly Revenue
+                supabase.from('appointments').select('appointment_date, services (price)')
+                    .eq('business_id', user.business_id)
+                    .eq('status', 'confirmed')
+                    .gte('appointment_date', startOfMonth)
+                    .lte('appointment_date', endOfMonth)
+            ]);
 
             if (appError) console.error('Error fetching appointments count:', appError);
-
-            // 2. Active Customers
-            const { count: customersCount, error: custError } = await supabase
-                .from('customers')
-                .select('*', { count: 'exact', head: true })
-                .eq('business_id', user.business_id);
-
             if (custError) console.error('Error fetching customers count:', custError);
-
-            // 3. Points (Sum)
-            const { data: customersData, error: pointsError } = await supabase
-                .from('customers')
-                .select('points')
-                .eq('business_id', user.business_id);
-
             if (pointsError) console.error('Error fetching points:', pointsError);
-            const totalPoints = customersData?.reduce((sum, c) => sum + (c.points || 0), 0) || 0;
-
-            // 4. Monthly Revenue (Confirmed appointments in current month)
-            const { data: revenueData, error: revError } = await supabase
-                .from('appointments')
-                .select(`
-                     appointment_date,
-                     services (price)
-                 `)
-                .eq('business_id', user.business_id)
-                .eq('status', 'confirmed')
-                .gte('appointment_date', startOfMonth)
-                .lte('appointment_date', endOfMonth);
-
             if (revError) console.error('Error fetching revenue:', revError);
 
+            const totalPoints = customersData?.reduce((sum, c) => sum + (c.points || 0), 0) || 0;
             const monthlyRevenue = revenueData?.reduce((sum, app) => {
                 return sum + (app.services?.price || 0);
             }, 0) || 0;

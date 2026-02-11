@@ -69,91 +69,75 @@ export const AuthProvider = ({ children }) => {
 
     const fetchBusinessProfile = async (authUser) => {
         try {
-            console.log("Fetching profile for:", authUser.email);
-            console.log("Step 1: Checking Super Admin...");
-            // ... (rest of logic remains, verify end of function)
+            console.log("⚡ Optimizing Profile Fetch for:", authUser.email);
+            const startTime = performance.now();
 
+            // PARALLEL EXECUTION: Fire all reliable identification queries at once
+            // We use Promise.allSettled to ensure one failure doesn't crash the others
+            const [superAdminResult, businessUserResult, employeeResult] = await Promise.allSettled([
+                // 1. Super Admin Check
+                supabase.from('super_admins').select('user_id').eq('user_id', authUser.id).maybeSingle(),
 
-            // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC)
-            // 0. Check Super Admin (DIRECT TABLE QUERY - NO RPC) with TIMEOUT
-            console.log("Step 1: Checking Super Admin (Direct Table)...");
+                // 2. Business User Check (Owner) - Check by ID first (fastest), then Email
+                supabase.from('business_users').select('*').eq('user_id', authUser.id).maybeSingle()
+                    .then(async ({ data, error }) => {
+                        if (!data && !error) {
+                            return supabase.from('business_users').select('*').eq('email', authUser.email).order('created_at', { ascending: false }).limit(1).maybeSingle();
+                        }
+                        return { data, error };
+                    }),
+
+                // 3. Employee Check (Barber) - Check by ID first, then Email
+                supabase.from('employees').select('*').eq('user_id', authUser.id).maybeSingle()
+                    .then(async ({ data, error }) => {
+                        if (!data && !error) {
+                            return supabase.from('employees').select('*').eq('email', authUser.email).maybeSingle();
+                        }
+                        return { data, error };
+                    })
+            ]);
+
+            const endTimeHelper = performance.now();
+            console.log(`⏱️ Identity checks took ${Math.round(endTimeHelper - startTime)}ms`);
+
+            // --- PROCESS RESULTS ---
+
+            // A. Check Super Admin
             let isSuperAdmin = false;
-            try {
-                // TIMEOUT SAFETY: Wrap the database call
-                const checkSuperAdminPromise = supabase
-                    .from('super_admins')
-                    .select('user_id')
-                    .eq('user_id', authUser.id)
-                    .maybeSingle();
-
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Super Admin Check Timed Out')), 5000)
-                );
-
-                const { data: adminData, error: adminError } = await Promise.race([
-                    checkSuperAdminPromise,
-                    timeoutPromise
-                ]);
-
-                if (adminError) {
-                    console.error("Super Admin Check Error (Non-blocking):", adminError);
-                } else if (adminData) {
-                    isSuperAdmin = true;
-                    console.log("Super Admin Verified ✅");
-                }
-            } catch (err) {
-                console.error("Super Admin Check Exception/Timeout:", err);
-                isSuperAdmin = false; // Fallback to avoid blank screen
+            if (superAdminResult.status === 'fulfilled' && superAdminResult.value.data) {
+                isSuperAdmin = true;
+                console.log("✅ User is Super Admin");
             }
 
-
-
-            // 1. Try 'business_users' (Admin/Owners)
-            console.log("Step 2: Checking business_users...");
-            let profile = null;
-            try {
-                // PRIMARIO: Buscar por user_id (Más seguro y rápido si hay indice)
-                let { data: businessData, error: businessError } = await supabase
-                    .from('business_users')
-                    .select('*')
-                    .eq('user_id', authUser.id)
-                    .maybeSingle();
-
-                // SECUNDARIO: Si no encuentra por ID (ej. invitación por email antes de registrarse), buscar por email
-                if (!businessData && !businessError) {
-                    console.log("No business_user by ID. Checking by email...");
-                    const { data: emailData, error: emailError } = await supabase
-                        .from('business_users')
-                        .select('*')
-                        .eq('email', authUser.email)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .maybeSingle();
-
-                    businessData = emailData;
-                    businessError = emailError;
-
-                    // Si encontramos por email pero no tenía user_id, vincularlo ahora
-                    if (businessData && !businessData.user_id) {
-                        await supabase.from('business_users').update({ user_id: authUser.id }).eq('id', businessData.id);
-                    }
+            // B. Check Business Owner
+            let businessProfile = null;
+            if (businessUserResult.status === 'fulfilled' && businessUserResult.value.data) {
+                businessProfile = businessUserResult.value.data;
+                // Fix missing linkage if found by email
+                if (!businessProfile.user_id) {
+                    supabase.from('business_users').update({ user_id: authUser.id }).eq('id', businessProfile.id);
                 }
-
-                if (businessError) console.error("Error fetching business_user:", businessError);
-                if (businessData) {
-                    profile = businessData;
-                }
-            } catch (err) {
-                console.error("Business User Check Exception:", err);
             }
 
-            if (profile) {
-                // ... (Subscription logic remains same) ...
-                console.log("Step 3: Fetching Subscription...");
+            // C. Check Employee
+            let employeeProfile = null;
+            if (!businessProfile && !isSuperAdmin && employeeResult.status === 'fulfilled' && employeeResult.value.data) {
+                employeeProfile = employeeResult.value.data;
+                // Fix missing linkage
+                if (!employeeProfile.user_id) {
+                    supabase.from('employees').update({ user_id: authUser.id }).eq('id', employeeProfile.id);
+                }
+            }
+
+            // --- FINAL CONSTRUCTION ---
+
+            if (businessProfile) {
+                // If Business Owner, we MUST fetch subscription (Critical for App Access)
+                // We do this AFTER identifying them to save reads for non-owners
                 const { data: subscription } = await supabase
                     .from('subscriptions')
                     .select('*')
-                    .eq('business_id', profile.business_id)
+                    .eq('business_id', businessProfile.business_id)
                     .maybeSingle();
 
                 let subStatus = 'inactive';
@@ -161,22 +145,21 @@ export const AuthProvider = ({ children }) => {
 
                 if (subscription) {
                     const now = new Date();
-                    const end = new Date(subscription.current_period_end); // or subscription.trial_end_date if available
+                    const end = new Date(subscription.current_period_end || subscription.trial_end_date);
                     const diffTime = end - now;
-                    daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-                    if (subscription.status === 'active' && daysRemaining > 0) {
-                        subStatus = 'active';
-                    } else if (subscription.status === 'trial' && daysRemaining > 0) {
-                        subStatus = 'trial';
-                    } else if (subscription.status === 'past_due' || daysRemaining <= 0) {
-                        subStatus = 'expired';
-                    }
+                    if (subscription.status === 'active' && daysRemaining > 0) subStatus = 'active';
+                    else if (subscription.status === 'trial' && daysRemaining > 0) subStatus = 'trial';
+                    else if (daysRemaining <= 0) subStatus = 'expired';
+                } else {
+                    // Fallback for no subscription record (shouldn't happen with new trigger)
+                    subStatus = 'expired';
                 }
 
                 setUser({
                     ...authUser,
-                    ...profile,
+                    ...businessProfile,
                     role: 'admin',
                     isSuperAdmin,
                     subscription: {
@@ -185,61 +168,32 @@ export const AuthProvider = ({ children }) => {
                         daysRemaining
                     }
                 });
+
+            } else if (employeeProfile) {
+                // Is Employee
+                setUser({
+                    ...authUser,
+                    business_id: employeeProfile.business_id,
+                    role: 'barber',
+                    employee_id: employeeProfile.id,
+                    name: employeeProfile.first_name
+                });
+
             } else {
-                // 2. Try 'employees' (Barbers/Staff) linked by user_id or email
-                console.log("No business_user found. Step 4: Checking employees...");
-                let employee = null;
-                try {
-                    // Similar robust check for employees: ID first, then Email
-                    let { data: empData, error: empError } = await supabase
-                        .from('employees')
-                        .select('*')
-                        .eq('user_id', authUser.id)
-                        .maybeSingle();
-
-                    if (!empData && !empError) {
-                        const { data: empEmailData, error: empEmailError } = await supabase
-                            .from('employees')
-                            .select('*')
-                            .eq('email', authUser.email)
-                            .maybeSingle();
-
-                        empData = empEmailData;
-                        empError = empEmailError;
-                    }
-
-                    if (empError) console.error("Error fetching employee:", empError);
-                    if (empData) employee = empData;
-
-                } catch (err) {
-                    console.error("Employee Check Exception:", err);
-                }
-
-                if (employee) {
-                    // Update user_id if missing
-                    if (!employee.user_id) {
-                        await supabase.from('employees').update({ user_id: authUser.id }).eq('id', employee.id);
-                    }
-
-                    setUser({
-                        ...authUser,
-                        business_id: employee.business_id,
-                        role: 'barber',
-                        employee_id: employee.id,
-                        name: employee.first_name
-                    });
-                } else {
-                    // No profile found
-                    console.log('No business profile found for', authUser.email);
-                    setUser(authUser);
-                }
+                // Fallback / Just Authenticated but no profile
+                // (Could be Super Admin without business profile, or new user stuck)
+                setUser({
+                    ...authUser,
+                    isSuperAdmin,
+                    role: isSuperAdmin ? 'superadmin' : 'user' // Basic fallback
+                });
             }
+
+            console.log(`✅ Profile Load Complete in ${Math.round(performance.now() - startTime)}ms`);
+
         } catch (error) {
-            if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
-                console.log('Profile fetch aborted');
-                return;
-            }
-            console.error('Error fetching profile', error);
+            console.error('🔥 Error fetching profile', error);
+            // Fallback to allow basic login so they aren't stuck on splash
             setUser(authUser);
         }
     };
