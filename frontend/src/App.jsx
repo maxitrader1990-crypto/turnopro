@@ -20,6 +20,10 @@ const BookingPage = lazy(() => import('./pages/Public/BookingPage'));
 const CustomerPointsPage = lazy(() => import('./pages/Public/CustomerPointsPage'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Billing = lazy(() => import('./pages/Billing'));
+const Plans = lazy(() => import('./pages/Plans'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
+const PaymentFailed = lazy(() => import('./pages/PaymentFailed'));
 
 // Barber Pages
 const BarberLayout = lazy(() => import('./pages/Barber/BarberLayout'));
@@ -128,6 +132,10 @@ function App() {
                                 <Route path="/reports" element={<Reports />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/settings/billing" element={<Billing />} />
+                                <Route path="/plans" element={<Plans />} />
+                                <Route path="/checkout" element={<Checkout />} />
+                                <Route path="/payment-success" element={<PaymentSuccess />} />
+                                <Route path="/payment-failed" element={<PaymentFailed />} />
                             </Route>
                         </Route>
 
