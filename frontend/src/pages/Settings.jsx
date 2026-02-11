@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import toast from 'react-hot-toast';
+import InstallPWA from '../components/InstallPWA';
 
 const Settings = () => {
     const { user } = useAuth();
@@ -176,69 +177,72 @@ const Settings = () => {
                         {isLoading ? (
                             <div className="text-center py-10"><Loader className="animate-spin mx-auto text-urban-accent" /></div>
                         ) : (
-                            <form onSubmit={handleSubmit((data) => updateMutation.mutate(data))} className="space-y-6">
-                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                                    <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">Información Pública del Negocio</h3>
+                            <>
+                                <InstallPWA />
+                                <form onSubmit={handleSubmit((data) => updateMutation.mutate(data))} className="space-y-6">
+                                    <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                        <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">Información Pública del Negocio</h3>
 
-                                    <div className="space-y-5">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre del Negocio</label>
-                                            <input
-                                                {...register('name', { required: "El nombre es obligatorio" })}
-                                                type="text"
-                                                className="input-urban w-full"
-                                                placeholder="Ej. Barbería King"
-                                            />
-                                            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
-                                            <p className="text-xs text-gray-500 mt-2">Este nombre aparecerá en la portada de tu página de reservas.</p>
-                                        </div>
+                                        <div className="space-y-5">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Nombre del Negocio</label>
+                                                <input
+                                                    {...register('name', { required: "El nombre es obligatorio" })}
+                                                    type="text"
+                                                    className="input-urban w-full"
+                                                    placeholder="Ej. Barbería King"
+                                                />
+                                                {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
+                                                <p className="text-xs text-gray-500 mt-2">Este nombre aparecerá en la portada de tu página de reservas.</p>
+                                            </div>
 
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Teléfono / WhatsApp</label>
-                                            <input
-                                                {...register('phone')}
-                                                type="text"
-                                                className="input-urban w-full"
-                                                placeholder="Ej. 5492804..."
-                                            />
-                                            <p className="text-xs text-gray-500 mt-2">Número para que tus clientes te contacten.</p>
-                                        </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Teléfono / WhatsApp</label>
+                                                <input
+                                                    {...register('phone')}
+                                                    type="text"
+                                                    className="input-urban w-full"
+                                                    placeholder="Ej. 5492804..."
+                                                />
+                                                <p className="text-xs text-gray-500 mt-2">Número para que tus clientes te contacten.</p>
+                                            </div>
 
-                                        <div className="opacity-50 pointer-events-none grayscale">
-                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Subdominio (Enlace)</label>
-                                            <input
-                                                {...register('subdomain')}
-                                                type="text"
-                                                className="input-urban w-full bg-black/40 border-dashed"
-                                                readOnly
-                                            />
-                                            <p className="text-xs text-yellow-600 mt-2">⚠ Contacta a soporte para cambiar tu enlace permanente.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                                    <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">Detalles de Cuenta</h3>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email del Propietario</label>
-                                        <div className="flex items-center gap-3 px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-gray-400">
-                                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                            {user?.email}
+                                            <div className="opacity-50 pointer-events-none grayscale">
+                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Subdominio (Enlace)</label>
+                                                <input
+                                                    {...register('subdomain')}
+                                                    type="text"
+                                                    className="input-urban w-full bg-black/40 border-dashed"
+                                                    readOnly
+                                                />
+                                                <p className="text-xs text-yellow-600 mt-2">⚠ Contacta a soporte para cambiar tu enlace permanente.</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="flex justify-end pt-4">
-                                    <button
-                                        type="submit"
-                                        disabled={updateMutation.isPending}
-                                        className="btn-urban flex items-center gap-2 px-8 py-3 text-base"
-                                    >
-                                        {updateMutation.isPending ? <Loader size={20} className="animate-spin" /> : <Save size={20} />}
-                                        Guardar Cambios
-                                    </button>
-                                </div>
-                            </form>
+                                    <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                                        <h3 className="text-lg font-bold text-white mb-6 border-b border-white/10 pb-4">Detalles de Cuenta</h3>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email del Propietario</label>
+                                            <div className="flex items-center gap-3 px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-gray-400">
+                                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                                {user?.email}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end pt-4">
+                                        <button
+                                            type="submit"
+                                            disabled={updateMutation.isPending}
+                                            className="btn-urban flex items-center gap-2 px-8 py-3 text-base"
+                                        >
+                                            {updateMutation.isPending ? <Loader size={20} className="animate-spin" /> : <Save size={20} />}
+                                            Guardar Cambios
+                                        </button>
+                                    </div>
+                                </form>
+                            </>
                         )}
                     </div>
                 )}
