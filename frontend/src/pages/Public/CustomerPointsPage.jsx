@@ -14,39 +14,74 @@ const CustomerPointsPage = () => {
     const [step, setStep] = useState(0); // 0=LoadingBus, 1=Login, 2=Dashboard
     const { register, handleSubmit, formState: { errors } } = useForm();
 
+    // --- ROBUST FETCH HELPER ---
+    const robustFetch = async (tableName, queryBuilderFn, fallbackUrlFn) => {
+        try {
+            // STRATEGY 1: Supabase Client (Protected by 3s Timeout)
+            const query = queryBuilderFn(supabase.from(tableName));
+            const clientPromise = query;
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT_CLIENT')), 3000)
+            );
+
+            try {
+                const { data, error } = await Promise.race([clientPromise, timeoutPromise]);
+                if (error) throw error;
+                if (data) return data;
+            } catch (err) {
+                console.log(`[${tableName}] Client failed/timed out. Switching to Fallback.`);
+            }
+
+            // STRATEGY 2: Fallback Fetch
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+            const url = fallbackUrlFn(supabaseUrl);
+
+            const response = await fetch(url, {
+                headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+            });
+
+            if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+            return await response.json();
+
+        } catch (err) {
+            console.error(`CRITICAL [${tableName}]: ${err.message}`);
+            return []; // Return empty array/null on total failure
+        }
+    };
+
     // 1. Fetch Business
     useEffect(() => {
         const fetchBusiness = async () => {
             if (!slug) return;
             try {
-                // Try searching by subdomain first
-                let { data, error } = await supabase
-                    .from('businesses')
-                    .select('*')
-                    .eq('subdomain', slug)
-                    .maybeSingle();
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
 
-                // If not found, try ID if UUID
-                if (!data && !error) {
-                    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-                    if (isUuid) {
-                        const { data: byId } = await supabase
-                            .from('businesses')
-                            .select('*')
-                            .eq('id', slug)
-                            .maybeSingle();
-                        data = byId;
+                // Robust Fetch for Business
+                const data = await robustFetch(
+                    'businesses',
+                    (q) => {
+                        if (isUuid) return q.select('*').eq('id', slug).maybeSingle();
+                        return q.select('*').eq('subdomain', slug).maybeSingle();
+                    },
+                    (baseUrl) => {
+                        const filter = isUuid ? `id=eq.${slug}` : `subdomain=eq.${slug}`;
+                        return `${baseUrl}/rest/v1/businesses?${filter}&select=*&limit=1`;
                     }
-                }
+                );
 
-                if (data) {
-                    setBusiness(data);
+                // Handle Array vs Object return from Fallback
+                const businessData = Array.isArray(data) ? data[0] : data;
+
+                if (businessData) {
+                    setBusiness(businessData);
                     setStep(1);
                 } else {
                     toast.error("Negocio no encontrado");
                 }
             } catch (e) {
                 console.error(e);
+                toast.error("Error cargando negocio");
             }
         };
         fetchBusiness();
@@ -56,13 +91,11 @@ const CustomerPointsPage = () => {
     const { data: rewards } = useQuery({
         queryKey: ['publicRewards', business?.id],
         queryFn: async () => {
-            const { data } = await supabase
-                .from('rewards')
-                .select('*')
-                .eq('business_id', business.id)
-                .is('is_active', true)
-                .order('points_cost', { ascending: true });
-            return data;
+            return robustFetch(
+                'rewards',
+                (q) => q.select('*').eq('business_id', business.id).eq('is_active', true).order('points_cost', { ascending: true }),
+                (baseUrl) => `${baseUrl}/rest/v1/rewards?business_id=eq.${business.id}&is_active=eq.true&order=points_cost.asc&select=*`
+            );
         },
         enabled: !!business?.id && step === 2
     });
@@ -70,19 +103,19 @@ const CustomerPointsPage = () => {
     // 3. Login / Find Customer
     const onSearch = async (formData) => {
         try {
-            const { data, error } = await supabase
-                .from('customers')
-                .select('*')
-                .eq('email', formData.email)
-                .eq('business_id', business.id)
-                .maybeSingle();
+            const data = await robustFetch(
+                'customers',
+                (q) => q.select('*').eq('email', formData.email).eq('business_id', business.id).maybeSingle(),
+                (baseUrl) => `${baseUrl}/rest/v1/customers?email=eq.${formData.email}&business_id=eq.${business.id}&select=*&limit=1`
+            );
 
-            if (error) throw error;
+            // Handle Array vs Object return from Fallback
+            const customerData = Array.isArray(data) ? data[0] : data;
 
-            if (data) {
-                setCustomer(data);
+            if (customerData) {
+                setCustomer(customerData);
                 setStep(2);
-                toast.success(`Hola, ${data.first_name}!`);
+                toast.success(`Hola, ${customerData.first_name}!`);
             } else {
                 toast.error("No encontramos un cliente con ese email en este negocio.");
             }
