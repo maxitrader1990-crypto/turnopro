@@ -70,6 +70,15 @@ export const AuthProvider = ({ children }) => {
     const fetchBusinessProfile = async (authUser) => {
         try {
             console.log("⚡ Optimizing Profile Fetch for:", authUser.email);
+
+            // 0. LINK IDENTITY (Critical for Manual Login vs Google Login)
+            // Ensures that if the email matches a business owners email, the user_id is updated to the current one.
+            try {
+                await supabase.rpc('claim_profile_by_email');
+            } catch (rpcError) {
+                console.warn("Identity Linking RPC failed (might not exist yet):", rpcError.message);
+            }
+
             const startTime = performance.now();
 
             // PARALLEL EXECUTION: Fire all reliable identification queries at once
