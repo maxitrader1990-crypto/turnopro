@@ -220,45 +220,151 @@ const BookingPage = () => {
         return portfolioItems.slice(0, 10).map(item => item.image_url);
     }
 
+    // --- ROBUST MUTATION HELPER (Race Condition + Fallback) ---
+    const robustSupabaseWrite = async (tableName, dataPayload) => {
+        try {
+            // STRATEGY 1: Supabase Client
+            const clientPromise = supabase.from(tableName).insert([dataPayload]).select().single();
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT_CLIENT_MUTATION')), 3000)
+            );
+
+            try {
+                const { data, error } = await Promise.race([clientPromise, timeoutPromise]);
+                if (error) throw error;
+                if (data) return data;
+            } catch (err) {
+                if (err.message === 'TIMEOUT_CLIENT_MUTATION') {
+                    addLog(`[Mutation ${tableName}] Client timed out >3s. Switching to Fallback.`);
+                } else if (err.code === '23505' || err.message?.includes('duplicate')) {
+                    // Rethrow duplicate errors to be handled by the caller logic
+                    throw err;
+                } else {
+                    addLog(`[Mutation ${tableName}] Client failed: ${err.message}. Switching to Fallback.`);
+                }
+            }
+
+            // STRATEGY 2: Fallback Fetch (POST)
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+            const url = `${supabaseUrl}/rest/v1/${tableName}`;
+
+            addLog(`Fallback POST [${tableName}]: ${url}`);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(dataPayload)
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                // Check for duplicate key error in response text (PostgREST format)
+                if (text.includes('duplicate key') || response.status === 409) {
+                    throw new Error('duplicate key value violates unique constraint');
+                }
+                throw new Error(`Fetch POST failed: ${response.status} - ${text}`);
+            }
+
+            const json = await response.json();
+            if (json && json.length > 0) return json[0];
+            throw new Error('Fallback POST returned no data');
+
+        } catch (err) {
+            addLog(`CRITICAL MUTATION [${tableName}]: ${err.message}`);
+            throw err;
+        }
+    };
+
     // --- MUTATION FOR BOOKING ---
     const createAppointmentMutation = useMutation({
         mutationFn: async (data) => {
-            // 1. Create/Get Customer
-            const { data: customer, error: customerError } = await supabase
-                .from('customers')
-                .insert([{
-                    first_name: data.firstName,
-                    last_name: data.lastName,
-                    email: data.email,
-                    phone: data.phone,
-                    business_id: business.id
-                }])
-                .select()
-                .single();
+            // 1. Create/Get Customer (Robustly)
+            addLog('Starting Booking Sequence...');
 
-            if (customerError) throw new Error(`Customer Error: ${customerError.message}`);
+            const customerData = {
+                first_name: data.firstName,
+                last_name: data.lastName,
+                email: data.email,
+                phone: data.phone,
+                business_id: business.id
+            };
 
-            // 2. Create Appointment
-            const { error: appointmentError } = await supabase
-                .from('appointments')
-                .insert([{
-                    business_id: business.id,
-                    customer_id: customer.id,
-                    employee_id: selectedEmployee.id,
-                    service_id: selectedService.id,
-                    start_time: selectedTime.toISOString(),
-                    end_time: addMinutes(selectedTime, selectedService.duration_minutes).toISOString(),
-                    status: 'pending'
-                }]);
+            let customer;
+            try {
+                // Try to INSERT first
+                addLog('Attempting to create generic customer...');
+                customer = await robustSupabaseWrite('customers', customerData);
+                addLog(`Customer created: ${customer.id}`);
+            } catch (err) {
+                // If error is duplicate key (409 or Postgres error), try to FETCH
+                if (err.message?.includes('unique') || err.message?.includes('409') || err.message?.includes('duplicate')) {
+                    addLog('Customer exists (duplicate). Fetching existing record...');
+                    // Fallback to fetching by Email
+                    try {
+                        const { data: existing, error: fetchError } = await supabase
+                            .from('customers')
+                            .select('*')
+                            .eq('email', data.email)
+                            .eq('business_id', business.id)
+                            .maybeSingle();
 
-            if (appointmentError) throw new Error(`Appointment Error: ${appointmentError.message}`);
+                        if (existing) {
+                            customer = existing;
+                            addLog(`Found existing customer: ${customer.id}`);
+                        } else {
+                            // Try phone as fallback search
+                            const { data: existingPhone } = await supabase
+                                .from('customers')
+                                .select('*')
+                                .eq('phone', data.phone)
+                                .eq('business_id', business.id)
+                                .maybeSingle();
+
+                            if (existingPhone) {
+                                customer = existingPhone;
+                                addLog(`Found existing customer by phone: ${customer.id}`);
+                            } else {
+                                throw new Error("Cliente existente no encontrado a pesar del error de duplicado.");
+                            }
+                        }
+                    } catch (findErr) {
+                        throw new Error(`Error recuperando cliente existente: ${findErr.message}`);
+                    }
+                } else {
+                    throw err; // Re-throw other errors
+                }
+            }
+
+            // 2. Create Appointment (Robustly)
+            const appointmentData = {
+                business_id: business.id,
+                customer_id: customer.id,
+                employee_id: selectedEmployee.id,
+                service_id: selectedService.id,
+                start_time: selectedTime.toISOString(),
+                end_time: addMinutes(selectedTime, selectedService.duration_minutes).toISOString(),
+                status: 'pending'
+            };
+
+            try {
+                await robustSupabaseWrite('appointments', appointmentData);
+                addLog('Appointment created successfully via Robust Mutation.');
+            } catch (err) {
+                throw new Error(`Error creando cita: ${err.message}`);
+            }
 
             return true;
         },
         onSuccess: () => {
             setStep(5);
             setBookingData({ ...selectedService, time: selectedTime });
-            toast.success("¡Reserva creada con éxito!");
+            toast.success("¡Reserva confirmada!");
         },
         onError: (err) => {
             toast.error(`Error: ${err.message}`);
