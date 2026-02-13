@@ -11,8 +11,6 @@ import { format, addMinutes, isAfter, setHours, setMinutes, isSameDay } from 'da
 import { es } from 'date-fns/locale';
 
 // --- LOOKBOOK DATA (Simulated for Demo) ---
-// --- LOOKBOOK DATA (Dynamic via Supabase) ---
-// We will fetch this in the component
 const DEMO_GLAMOUR_SHOTS = [
     "https://placehold.co/600x400/1a1a1a/FFF?text=Corte+Premium",
     "https://placehold.co/600x400/1a1a1a/FFF?text=Herramientas",
@@ -28,8 +26,8 @@ const BookingPage = () => {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState(null);
-    const [bookingData, setBookingData] = useState(null); // Restore bookingData
-    const [viewingPortfolio, setViewingPortfolio] = useState(null); // New state for portfolio modal
+    const [bookingData, setBookingData] = useState(null);
+    const [viewingPortfolio, setViewingPortfolio] = useState(null);
     const [theme_id, setThemeId] = useState(null);
 
     // --- DEBUG STATE ---
@@ -50,6 +48,52 @@ const BookingPage = () => {
         return () => clearTimeout(timer);
     }, [slug]);
 
+    // --- ROBUST FETCH HELPER (Race Condition + Fallback) ---
+    const robustFetch = async (tableName, queryBuilderFn, fallbackUrlFn) => {
+        try {
+            // STRATEGY 1: Supabase Client (Protected by 3s Timeout)
+            const query = queryBuilderFn(supabase.from(tableName));
+            const clientPromise = query;
+
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT_CLIENT')), 3000)
+            );
+
+            try {
+                const { data, error } = await Promise.race([clientPromise, timeoutPromise]);
+                if (error) throw error;
+                if (data) return data;
+            } catch (err) {
+                // If it's a timeout or client error, just log and proceed to fallback
+                if (err.message === 'TIMEOUT_CLIENT') {
+                    addLog(`[${tableName}] Client timed out (>3s). Switching to Fallback.`);
+                } else {
+                    addLog(`[${tableName}] Client failed: ${err.message}. Switching to Fallback.`);
+                }
+            }
+
+            // STRATEGY 2: Fallback Fetch
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+            const url = fallbackUrlFn(supabaseUrl);
+
+            addLog(`Fallback Fetching [${tableName}]: ${url}`);
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`
+                }
+            });
+
+            if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+            return await response.json();
+
+        } catch (err) {
+            addLog(`CRITICAL [${tableName}]: ${err.message}`);
+            return []; // Return empty array on total failure to avoid crashes
+        }
+    };
+
     // Business Fetch (by ID or Subdomain)
     const { data: business, isLoading: loadingBusiness, isError, error } = useQuery({
         queryKey: ['publicBusiness', slug],
@@ -57,7 +101,6 @@ const BookingPage = () => {
             addLog(`Fetching business for slug: ${slug}`);
 
             try {
-                // Try by ID first (UUID regex)
                 const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
                 addLog(`Is UUID? ${isUUID}`);
 
@@ -69,7 +112,6 @@ const BookingPage = () => {
 
                     addLog('Executing Supabase query (Client)...');
 
-                    // RACE: Client vs 3s Timeout
                     const clientPromise = query.limit(1).maybeSingle();
                     const timeoutPromise = new Promise((_, reject) =>
                         setTimeout(() => reject(new Error('TIMEOUT_CLIENT')), 3000)
@@ -85,7 +127,6 @@ const BookingPage = () => {
                     addLog('Client returned null.');
                 } catch (err) {
                     addLog(`Strategy 1 (Client) failed/timed out: ${err.message || err}.`);
-                    // Continue to Strategy 2...
                 }
 
                 // --- STRATEGY 2: Fallback Fetch ---
@@ -116,7 +157,7 @@ const BookingPage = () => {
                     }
                 } catch (fetchErr) {
                     addLog(`Strategy 2 (Fetch) failed: ${fetchErr.message}`);
-                    throw fetchErr; // If both fail, throw
+                    throw fetchErr;
                 }
 
                 throw new Error('Negocio no encontrado (Ambos métodos terminaron sin datos)');
@@ -127,24 +168,18 @@ const BookingPage = () => {
             }
         },
         retry: 1,
-        staleTime: 1000 * 60 * 5 // 5 minutes
+        staleTime: 1000 * 60 * 5
     });
 
     // Services Fetch
     const { data: services } = useQuery({
         queryKey: ['publicServices', business?.id],
         queryFn: async () => {
-            // Try fallback fetch for services too, or just use client (assuming if business loaded, client *might* work, but safest to use simple client here first)
-            // Actually, if client is blocked, we should probably stick to simple queries or trust that subsequent queries might work if the first one was just a handshake issue?
-            // No, be consistent. But for simplicity, let's keep services using standard client for now unless it breaks too.
-            // Actually, the screenshot showed ONLY business query hanging.
-            const { data, error } = await supabase
-                .from('services')
-                .select('*')
-                .eq('business_id', business.id)
-                .eq('is_active', true);
-            if (error) throw error;
-            return data;
+            return robustFetch(
+                'services',
+                (q) => q.select('*').eq('business_id', business.id).eq('is_active', true),
+                (baseUrl) => `${baseUrl}/rest/v1/services?business_id=eq.${business.id}&is_active=eq.true&select=*`
+            );
         },
         enabled: !!business?.id
     });
@@ -153,19 +188,11 @@ const BookingPage = () => {
     const { data: employees } = useQuery({
         queryKey: ['publicEmployees', business?.id],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('employees')
-                .select(`
-                    *,
-                    employee_services (
-                        service_id,
-                        services (id, name)
-                    )
-                `)
-                .eq('business_id', business.id)
-                .eq('is_active', true);
-            if (error) throw error;
-            return data;
+            return robustFetch(
+                'employees',
+                (q) => q.select('*, employee_services(service_id, services(id, name))').eq('business_id', business.id).eq('is_active', true),
+                (baseUrl) => `${baseUrl}/rest/v1/employees?business_id=eq.${business.id}&is_active=eq.true&select=*,employee_services(service_id,services(id,name))`
+            );
         },
         enabled: !!business?.id
     });
@@ -174,17 +201,11 @@ const BookingPage = () => {
     const { data: portfolioItems } = useQuery({
         queryKey: ['publicPortfolio', business?.id],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('portfolio_items')
-                .select('*')
-                .eq('business_id', business.id)
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error("Error fetching portfolio", error);
-                return [];
-            }
-            return data || [];
+            return robustFetch(
+                'portfolio_items',
+                (q) => q.select('*').eq('business_id', business.id).order('created_at', { ascending: false }),
+                (baseUrl) => `${baseUrl}/rest/v1/portfolio_items?business_id=eq.${business.id}&order=created_at.desc&select=*`
+            );
         },
         enabled: !!business?.id
     });
@@ -196,7 +217,6 @@ const BookingPage = () => {
 
     const getCarouselItems = () => {
         if (!portfolioItems || portfolioItems.length === 0) return DEMO_GLAMOUR_SHOTS;
-        // Return max 10 latest items
         return portfolioItems.slice(0, 10).map(item => item.image_url);
     }
 
@@ -204,9 +224,6 @@ const BookingPage = () => {
     const createAppointmentMutation = useMutation({
         mutationFn: async (data) => {
             // 1. Create/Get Customer
-            // Check if customer exists by email/phone? For now just insert (or upsert logic if we had it)
-            // We'll simplisticly insert a new customer record for this public booking or check existence.
-            // RLS policy allows INSERT for public (anon).
             const { data: customer, error: customerError } = await supabase
                 .from('customers')
                 .insert([{
@@ -230,9 +247,8 @@ const BookingPage = () => {
                     employee_id: selectedEmployee.id,
                     service_id: selectedService.id,
                     start_time: selectedTime.toISOString(),
-                    // End time = start + duration
                     end_time: addMinutes(selectedTime, selectedService.duration_minutes).toISOString(),
-                    status: 'pending' // Default status
+                    status: 'pending'
                 }]);
 
             if (appointmentError) throw new Error(`Appointment Error: ${appointmentError.message}`);
@@ -241,7 +257,7 @@ const BookingPage = () => {
         },
         onSuccess: () => {
             setStep(5);
-            setBookingData({ ...selectedService, time: selectedTime }); // Keep data for success screen
+            setBookingData({ ...selectedService, time: selectedTime });
             toast.success("¡Reserva creada con éxito!");
         },
         onError: (err) => {
@@ -258,13 +274,10 @@ const BookingPage = () => {
     const generateTimeSlots = () => {
         if (!selectedDate || !selectedService) return [];
         const slots = [];
-        // Demo logic: 9 AM to 8 PM, every 30 mins
-        // In real app, check 'appointments' table for conflicts
         let start = setMinutes(setHours(selectedDate, 9), 0);
         const end = setMinutes(setHours(selectedDate, 20), 0);
 
         while (start < end) {
-            // Filter past times if today
             if (isSameDay(selectedDate, new Date()) && isAfter(new Date(), start)) {
                 start = addMinutes(start, 30);
                 continue;
