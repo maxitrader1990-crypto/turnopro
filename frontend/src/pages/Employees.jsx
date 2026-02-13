@@ -70,6 +70,9 @@ const Employees = () => {
                 profile_image_url: data.profile_image_url,
                 bio: data.bio,
                 title: data.title,
+                instagram_url: data.instagram_url,
+                facebook_url: data.facebook_url,
+                tiktok_url: data.tiktok_url,
                 is_active: true,
                 schedule: DEFAULT_SCHEDULE
             });
@@ -148,6 +151,9 @@ const Employees = () => {
         setValue('title', employee.title);
         setValue('profile_image_url', employee.profile_image_url);
         setValue('bio', employee.bio);
+        setValue('instagram_url', employee.instagram_url);
+        setValue('facebook_url', employee.facebook_url);
+        setValue('tiktok_url', employee.tiktok_url);
         setIsModalOpen(true);
     };
 
@@ -309,6 +315,22 @@ const Employees = () => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Biografía Corta</label>
                         <textarea {...register('bio')} rows="3" className="mt-1 block w-full input-urban text-black" placeholder="Experiencia, especialidad..." />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                        <div className="col-span-full text-sm font-bold text-gray-700 mb-2">Redes Sociales (Opcional)</div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500">Instagram URL</label>
+                            <input {...register('instagram_url')} placeholder="https://instagram.com/..." className="mt-1 block w-full input-urban text-black text-xs" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500">Facebook URL</label>
+                            <input {...register('facebook_url')} placeholder="https://facebook.com/..." className="mt-1 block w-full input-urban text-black text-xs" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500">TikTok URL</label>
+                            <input {...register('tiktok_url')} placeholder="https://tiktok.com/@..." className="mt-1 block w-full input-urban text-black text-xs" />
+                        </div>
                     </div>
                     <div className="flex justify-end space-x-3 pt-6 border-t border-gray-100">
                         <button
