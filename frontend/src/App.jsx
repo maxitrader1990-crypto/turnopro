@@ -7,36 +7,58 @@ import SplashScreen from './components/SplashScreen';
 import Login from './pages/Login';
 import Layout from './components/Layout';
 
-// Lazy Load Pages
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Services = lazy(() => import('./pages/Services'));
-const Employees = lazy(() => import('./pages/Employees'));
-const Gamification = lazy(() => import('./pages/Gamification'));
-const Customers = lazy(() => import('./pages/Customers'));
-const CalendarPage = lazy(() => import('./pages/Calendar'));
-const Settings = lazy(() => import('./pages/Settings'));
-const OnboardingPage = lazy(() => import('./pages/Public/OnboardingPage'));
-const BookingPage = lazy(() => import('./pages/Public/BookingPage'));
-const CustomerPointsPage = lazy(() => import('./pages/Public/CustomerPointsPage'));
-const Reports = lazy(() => import('./pages/Reports'));
-const Billing = lazy(() => import('./pages/Billing'));
-const Plans = lazy(() => import('./pages/Plans'));
-const Checkout = lazy(() => import('./pages/Checkout'));
-const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
-const PaymentFailed = lazy(() => import('./pages/PaymentFailed'));
+// Helper for auto-reload on version mismatch
+const lazyWithRetry = (componentImport) =>
+    lazy(async () => {
+        const pageHasAlreadyBeenForceRefreshed = JSON.parse(
+            window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
+        );
+
+        try {
+            const component = await componentImport();
+            window.sessionStorage.setItem('page-has-been-force-refreshed', 'false');
+            return component;
+        } catch (error) {
+            if (!pageHasAlreadyBeenForceRefreshed) {
+                // Assuming that the user is not on the latest version of the application.
+                // Let's refresh the page immediately.
+                window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
+                window.location.reload();
+            }
+            throw error;
+        }
+    });
+
+// Lazy Load Pages with Retry
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const Services = lazyWithRetry(() => import('./pages/Services'));
+const Employees = lazyWithRetry(() => import('./pages/Employees'));
+const Gamification = lazyWithRetry(() => import('./pages/Gamification'));
+const Customers = lazyWithRetry(() => import('./pages/Customers'));
+const CalendarPage = lazyWithRetry(() => import('./pages/Calendar'));
+const Settings = lazyWithRetry(() => import('./pages/Settings'));
+const OnboardingPage = lazyWithRetry(() => import('./pages/Public/OnboardingPage'));
+const BookingPage = lazyWithRetry(() => import('./pages/Public/BookingPage'));
+const CustomerPointsPage = lazyWithRetry(() => import('./pages/Public/CustomerPointsPage'));
+const Reports = lazyWithRetry(() => import('./pages/Reports'));
+const Billing = lazyWithRetry(() => import('./pages/Billing'));
+const Plans = lazyWithRetry(() => import('./pages/Plans'));
+const Checkout = lazyWithRetry(() => import('./pages/Checkout'));
+const PaymentSuccess = lazyWithRetry(() => import('./pages/PaymentSuccess'));
+const PaymentFailed = lazyWithRetry(() => import('./pages/PaymentFailed'));
 
 // Barber Pages
-const BarberLayout = lazy(() => import('./pages/Barber/BarberLayout'));
-const BarberDashboard = lazy(() => import('./pages/Barber/Dashboard'));
-const BarberPortfolio = lazy(() => import('./pages/Barber/Portfolio'));
+const BarberLayout = lazyWithRetry(() => import('./pages/Barber/BarberLayout'));
+const BarberDashboard = lazyWithRetry(() => import('./pages/Barber/Dashboard'));
+const BarberPortfolio = lazyWithRetry(() => import('./pages/Barber/Portfolio'));
 
 // Super Admin Pages
-const SuperAdminLayout = lazy(() => import('./layouts/SuperAdminLayout'));
-const SuperAdminDashboard = lazy(() => import('./pages/SuperAdmin/Dashboard'));
-const BusinessList = lazy(() => import('./pages/SuperAdmin/BusinessList'));
-const SuperAdminPayments = lazy(() => import('./pages/SuperAdmin/Payments'));
-const SuperAdminAudit = lazy(() => import('./pages/SuperAdmin/Audit'));
-const SuperAdminRecovery = lazy(() => import('./pages/SuperAdmin/Recovery'));
+const SuperAdminLayout = lazyWithRetry(() => import('./layouts/SuperAdminLayout'));
+const SuperAdminDashboard = lazyWithRetry(() => import('./pages/SuperAdmin/Dashboard'));
+const BusinessList = lazyWithRetry(() => import('./pages/SuperAdmin/BusinessList'));
+const SuperAdminPayments = lazyWithRetry(() => import('./pages/SuperAdmin/Payments'));
+const SuperAdminAudit = lazyWithRetry(() => import('./pages/SuperAdmin/Audit'));
+const SuperAdminRecovery = lazyWithRetry(() => import('./pages/SuperAdmin/Recovery'));
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
