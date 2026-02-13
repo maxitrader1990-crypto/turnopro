@@ -449,7 +449,9 @@ const BookingPage = () => {
         );
     }
 
-    const whatsappLink = bookingData ? `https://wa.me/?text=¡Tengo turno en ${business.name}! ✂️ ${format(selectedTime, "d 'de' MMMM, HH:mm", { locale: es })}` : '';
+    const whatsappLink = bookingData && selectedEmployee?.phone
+        ? `https://wa.me/${selectedEmployee.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`¡Hola ${selectedEmployee.first_name}! 👋 Acabo de reservar un turno para *${selectedService.name}* el ${format(selectedTime, "d 'de' MMMM 'a las' HH:mm", { locale: es })}. ¿Me confirmas?`)}`
+        : '';
 
     return (
         <div className="min-h-screen bg-black text-gray-200 font-sans selection:bg-urban-accent selection:text-black pb-20">
