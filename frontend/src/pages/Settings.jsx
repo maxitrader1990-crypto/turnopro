@@ -155,7 +155,14 @@ const Settings = () => {
                                     <div className="bg-black/30 p-4 rounded-xl flex items-center justify-between border border-white/10 mt-3 group-hover:border-green-500/50 transition-colors">
                                         <div className="flex items-center gap-3 text-green-400 font-medium truncate">
                                             <Store size={18} />
-                                            <span className="truncate text-xs sm:text-sm font-mono">{businessLink}</span>
+                                            <a
+                                                href={businessLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="truncate text-xs sm:text-sm font-mono hover:underline cursor-pointer"
+                                            >
+                                                {businessLink}
+                                            </a>
                                         </div>
                                         <button
                                             onClick={() => copyLink(businessLink)}
