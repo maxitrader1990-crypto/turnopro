@@ -32,13 +32,32 @@ const BookingPage = () => {
     const [viewingPortfolio, setViewingPortfolio] = useState(null); // New state for portfolio modal
     const [theme_id, setThemeId] = useState(null);
 
+    // --- DEBUG STATE ---
+    const [debugLog, setDebugLog] = useState([]);
+    const [showDebug, setShowDebug] = useState(false);
+
+    const addLog = (msg) => {
+        console.log(msg);
+        setDebugLog(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]} - ${msg}`]);
+    };
+
+    useEffect(() => {
+        addLog(`Component Mounted. Slug: ${slug}`);
+        const timer = setTimeout(() => {
+            setShowDebug(true);
+            addLog('TIMEOUT: Loading took > 5s. Showing debug info.');
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [slug]);
+
     // Business Fetch (by ID or Subdomain)
     const { data: business, isLoading: loadingBusiness, isError, error } = useQuery({
         queryKey: ['publicBusiness', slug],
         queryFn: async () => {
-            console.log('Fetching business for slug:', slug);
+            addLog(`Fetching business for slug: ${slug}`);
             // Try by ID first (UUID regex)
             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+            addLog(`Is UUID? ${isUUID}`);
 
             let query = supabase.from('businesses').select('*');
             if (isUUID) {
@@ -47,12 +66,19 @@ const BookingPage = () => {
                 query = query.eq('subdomain', slug);
             }
 
+            addLog('Executing Supabase query...');
             const { data, error } = await query.single();
+
             if (error) {
+                addLog(`Supabase Error: ${JSON.stringify(error)}`);
                 console.error('Supabase Error:', error);
                 throw error;
             }
-            if (!data) throw new Error('Negocio no encontrado');
+            if (!data) {
+                addLog('No data returned from Supabase');
+                throw new Error('Negocio no encontrado');
+            }
+            addLog(`Business found: ${data.name}`);
             return data;
         },
         retry: 1,
@@ -63,13 +89,24 @@ const BookingPage = () => {
 
     // ... (omitted hook logic for brevity)
 
-    // Improved Loading State
+    // Improved Loading State with Debug
     if (loadingBusiness) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4 text-center">
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-4 text-center relative">
                 <div className="w-16 h-16 border-4 border-urban-accent border-t-transparent rounded-full animate-spin mb-4"></div>
                 <h2 className="text-xl font-bold animate-pulse">Cargando barbería...</h2>
                 <p className="text-gray-500 text-sm mt-2">Por favor espere un momento.</p>
+
+                {showDebug && (
+                    <div className="mt-8 p-4 bg-gray-900 border border-red-500/50 rounded-lg max-w-sm w-full text-left font-mono text-xs text-red-300 overflow-auto max-h-64">
+                        <h3 className="font-bold border-b border-red-500/30 mb-2 pb-1">DEBUG INFO (Envíame una captura de esto)</h3>
+                        <p>Slug: {slug}</p>
+                        <p>Supabase URL: {import.meta.env.VITE_SUPABASE_URL || 'UNDEFINED'}</p>
+                        <div className="mt-2 space-y-1">
+                            {debugLog.map((log, i) => <div key={i}>{log}</div>)}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -85,12 +122,23 @@ const BookingPage = () => {
                 <p className="text-gray-400 mb-6 max-w-md">
                     {error?.message || "El enlace puede estar incorrecto o el negocio no existe."}
                 </p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className="btn-urban px-6 py-2"
-                >
-                    Intentar de nuevo
-                </button>
+
+                <div className="mt-4 p-4 bg-gray-900 border border-red-500/50 rounded-lg max-w-sm w-full text-left font-mono text-xs text-red-300 overflow-auto max-h-64 mx-auto">
+                    <h3 className="font-bold border-b border-red-500/30 mb-2 pb-1">DEBUG INFO</h3>
+                    <div className="space-y-1">
+                        {debugLog.map((log, i) => <div key={i}>{log}</div>)}
+                    </div>
+                </div>
+
+                <div className="mt-6 flex gap-4 justify-center">
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="btn-urban px-6 py-2"
+                    >
+                        Intentar de nuevo
+                    </button>
+                    <a href="/" className="text-gray-500 hover:text-white pt-2">Ir al Inicio</a>
+                </div>
             </div>
         );
     }
