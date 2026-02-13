@@ -55,31 +55,71 @@ const BookingPage = () => {
         queryKey: ['publicBusiness', slug],
         queryFn: async () => {
             addLog(`Fetching business for slug: ${slug}`);
-            // Try by ID first (UUID regex)
-            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-            addLog(`Is UUID? ${isUUID}`);
 
-            let query = supabase.from('businesses').select('*');
-            if (isUUID) {
-                query = query.eq('id', slug);
-            } else {
-                query = query.eq('subdomain', slug);
-            }
+            try {
+                // Try by ID first (UUID regex)
+                const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+                addLog(`Is UUID? ${isUUID}`);
 
-            addLog('Executing Supabase query...');
-            const { data, error } = await query.single();
+                // STRATEGY 1: Default Supabase Client
+                // Using limit(1) instead of single() to avoid strict "one row" errors if multiple exist or 0 exist
+                let query = supabase.from('businesses').select('*');
+                if (isUUID) {
+                    query = query.eq('id', slug);
+                } else {
+                    query = query.eq('subdomain', slug);
+                }
 
-            if (error) {
-                addLog(`Supabase Error: ${JSON.stringify(error)}`);
-                console.error('Supabase Error:', error);
-                throw error;
+                addLog('Executing Supabase query (Client)...');
+                const { data, error } = await query.limit(1).maybeSingle();
+
+                if (error) {
+                    addLog(`Client Error: ${JSON.stringify(error)}`);
+                    throw error;
+                }
+
+                // If data found via client, return it
+                if (data) {
+                    addLog(`Business found (Client): ${data.name}`);
+                    return data;
+                }
+
+                addLog('Client returned null. Trying fallback FETCH...');
+
+                // STRATEGY 2: Fallback REST API (bypass client)
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+                const filter = isUUID ? `id=eq.${slug}` : `subdomain=eq.${slug}`;
+                const url = `${supabaseUrl}/rest/v1/businesses?${filter}&select=*&limit=1`;
+
+                addLog(`Fetching: ${url}`);
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    addLog(`Fetch Error: ${response.status} - ${text}`);
+                    throw new Error(`Fetch failed: ${response.status}`);
+                }
+
+                const json = await response.json();
+                addLog(`Fetch result length: ${json.length}`);
+
+                if (json && json.length > 0) {
+                    return json[0];
+                }
+
+                throw new Error('Negocio no encontrado (Ambos métodos fallaron)');
+
+            } catch (err) {
+                addLog(`CRITICAL ERROR: ${err.message}`);
+                throw err;
             }
-            if (!data) {
-                addLog('No data returned from Supabase');
-                throw new Error('Negocio no encontrado');
-            }
-            addLog(`Business found: ${data.name}`);
-            return data;
         },
         retry: 1,
         staleTime: 1000 * 60 * 5 // 5 minutes
