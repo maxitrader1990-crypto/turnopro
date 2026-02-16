@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import toast from 'react-hot-toast';
 import SplashScreen from '../components/SplashScreen';
@@ -10,6 +10,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const fetchVersion = useRef(0);
 
     useEffect(() => {
         // Safety timeout: Ensure app loads even if everything else hangs
@@ -68,8 +69,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     const fetchBusinessProfile = async (authUser) => {
+        // INCREMENT VERSION: Any previous fetch is now "stale"
+        const currentVersion = ++fetchVersion.current;
+
         try {
-            console.log("⚡ Optimizing Profile Fetch for:", authUser.email);
+            console.log(`⚡ Optimizing Profile Fetch for: ${authUser.email} (v${currentVersion})`);
 
             // 0. LINK IDENTITY (Critical for Manual Login vs Google Login)
             // Ensures that if the email matches a business owners email, the user_id is updated to the current one.
@@ -108,6 +112,12 @@ export const AuthProvider = ({ children }) => {
 
             const endTimeHelper = performance.now();
             console.log(`⏱️ Identity checks took ${Math.round(endTimeHelper - startTime)}ms`);
+
+            // CHECK STALENESS BEFORE PROCESSING
+            if (currentVersion !== fetchVersion.current) {
+                console.log(`⚠️ Discarding stale profile fetch (v${currentVersion} vs v${fetchVersion.current})`);
+                return;
+            }
 
             // --- PROCESS RESULTS ---
 
@@ -166,6 +176,9 @@ export const AuthProvider = ({ children }) => {
                     subStatus = 'expired';
                 }
 
+                // CHECK STALENESS AGAIN (before final set)
+                if (currentVersion !== fetchVersion.current) return;
+
                 setUser({
                     ...authUser,
                     ...businessProfile,
@@ -180,6 +193,10 @@ export const AuthProvider = ({ children }) => {
 
             } else if (employeeProfile) {
                 // Is Employee
+                
+                // CHECK STALENESS AGAIN
+                if (currentVersion !== fetchVersion.current) return;
+
                 setUser({
                     ...authUser,
                     business_id: employeeProfile.business_id,
@@ -191,6 +208,10 @@ export const AuthProvider = ({ children }) => {
             } else {
                 // Fallback / Just Authenticated but no profile
                 // (Could be Super Admin without business profile, or new user stuck)
+                
+                // CHECK STALENESS AGAIN
+                if (currentVersion !== fetchVersion.current) return;
+
                 setUser({
                     ...authUser,
                     isSuperAdmin,
@@ -201,6 +222,9 @@ export const AuthProvider = ({ children }) => {
             console.log(`✅ Profile Load Complete in ${Math.round(performance.now() - startTime)}ms`);
 
         } catch (error) {
+            // CHECK STALENESS
+            if (currentVersion !== fetchVersion.current) return;
+
             console.error('🔥 Error fetching profile', error);
             // Fallback to allow basic login so they aren't stuck on splash
             setUser(authUser);
