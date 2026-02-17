@@ -7,17 +7,27 @@
         "build:30s": "remotion render src/index.ts MarketingVideo30s out/video-30s.mp4",
         "build:60s": "remotion render src/index.ts MarketingVideo60s out/video-60s.mp4",
         "build:horizontal": "remotion render src/index.ts MarketingVideoHorizontal out/video-horizontal.mp4",
+        "build:agresivo": "remotion render src/index.ts AgresivoV2 out/video-agresivo.mp4",
+        "build:v3": "remotion render src/index.ts PeakyV3 out/video-v3-agresivo.mp4",
+        "build:v4": "remotion render src/index.ts EliteV4 out/video-v4-elite.mp4",
+        "build:v5": "remotion render src/index.ts GodModeV5 out/video-v5-godmode.mp4",
+        "build:v6": "remotion render src/index.ts ThreeDV6 out/video-v6-3d.mp4",
         "upgrade": "remotion upgrade",
         "test": "eslint src --ext ts,tsx"
     },
     "dependencies": {
-        "@remotion/cli": "latest",
-        "@remotion/zod-types": "latest",
+        "@react-three/drei": "^9.99.0",
+        "@react-three/fiber": "^8.15.14",
+        "@remotion/cli": "4.0.423",
+        "@remotion/three": "4.0.423",
+        "@remotion/zod-types": "4.0.423",
+        "@types/three": "^0.160.0",
         "puppeteer": "^24.37.3",
         "react": "^18.0.0",
         "react-dom": "^18.0.0",
-        "remotion": "latest",
-        "zod": "^3.22.4"
+        "remotion": "4.0.423",
+        "three": "^0.160.0",
+        "zod": "3.22.3"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

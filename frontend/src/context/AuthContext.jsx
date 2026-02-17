@@ -64,8 +64,9 @@ export const AuthProvider = ({ children }) => {
     const refreshProfile = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-            await fetchBusinessProfile(session.user);
+            return await fetchBusinessProfile(session.user);
         }
+        return null;
     };
 
     const fetchBusinessProfile = async (authUser) => {
@@ -116,7 +117,7 @@ export const AuthProvider = ({ children }) => {
             // CHECK STALENESS BEFORE PROCESSING
             if (currentVersion !== fetchVersion.current) {
                 console.log(`⚠️ Discarding stale profile fetch (v${currentVersion} vs v${fetchVersion.current})`);
-                return;
+                return null;
             }
 
             // --- PROCESS RESULTS ---
@@ -177,9 +178,9 @@ export const AuthProvider = ({ children }) => {
                 }
 
                 // CHECK STALENESS AGAIN (before final set)
-                if (currentVersion !== fetchVersion.current) return;
+                if (currentVersion !== fetchVersion.current) return null;
 
-                setUser({
+                const newUser = {
                     ...authUser,
                     ...businessProfile,
                     role: 'admin',
@@ -189,45 +190,53 @@ export const AuthProvider = ({ children }) => {
                         status: subStatus,
                         daysRemaining
                     }
-                });
+                };
+                setUser(newUser);
+                return newUser;
 
             } else if (employeeProfile) {
                 // Is Employee
                 
                 // CHECK STALENESS AGAIN
-                if (currentVersion !== fetchVersion.current) return;
+                if (currentVersion !== fetchVersion.current) return null;
 
-                setUser({
+                const newUser = {
                     ...authUser,
                     business_id: employeeProfile.business_id,
                     role: 'barber',
                     employee_id: employeeProfile.id,
                     name: employeeProfile.first_name
-                });
+                };
+                setUser(newUser);
+                return newUser;
 
             } else {
                 // Fallback / Just Authenticated but no profile
                 // (Could be Super Admin without business profile, or new user stuck)
                 
                 // CHECK STALENESS AGAIN
-                if (currentVersion !== fetchVersion.current) return;
+                if (currentVersion !== fetchVersion.current) return null;
 
-                setUser({
+                const newUser = {
                     ...authUser,
                     isSuperAdmin,
                     role: isSuperAdmin ? 'superadmin' : 'user' // Basic fallback
-                });
+                };
+                setUser(newUser);
+                return newUser;
             }
 
             console.log(`✅ Profile Load Complete in ${Math.round(performance.now() - startTime)}ms`);
 
         } catch (error) {
             // CHECK STALENESS
-            if (currentVersion !== fetchVersion.current) return;
+            if (currentVersion !== fetchVersion.current) return null;
 
             console.error('🔥 Error fetching profile', error);
             // Fallback to allow basic login so they aren't stuck on splash
-            setUser(authUser);
+            const fallbackUser = { ...authUser };
+            setUser(fallbackUser);
+            return fallbackUser;
         }
     };
 

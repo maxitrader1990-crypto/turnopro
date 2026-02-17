@@ -10,6 +10,7 @@ const OnboardingPage = () => {
     const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const { register: registerAuth, user, loginWithGoogle, refreshProfile } = useAuth(); // Destructure properly
+    const [isRedirecting, setIsRedirecting] = React.useState(false);
 
     // Pre-fill if user logged in via Google
     useEffect(() => {
@@ -28,6 +29,14 @@ const OnboardingPage = () => {
             }
         }
     }, [user, setValue]);
+
+    // PROTECTED ROUTE SAFETY: Wait for Context to Update
+    useEffect(() => {
+        if (isRedirecting && user?.business_id) {
+            // Only navigate when we DEFINITELY have the business_id in context
+            navigate('/dashboard', { replace: true });
+        }
+    }, [isRedirecting, user, navigate]);
 
     const registerMutation = useMutation({
         mutationFn: async (data) => {
@@ -102,7 +111,11 @@ const OnboardingPage = () => {
                 if (uErr) throw uErr;
 
                 // IMPORTANT: Manually refresh profile to update context WITHOUT reload
-                await refreshProfile();
+                // Now awaiting the actual promise which returns the user object
+                const updatedUser = await refreshProfile();
+
+                // If for some reason refreshProfile returns null (stale), we might need to rely on the effect
+                // But typically it returns the new user object with business_id
 
                 return true;
             }
@@ -118,9 +131,11 @@ const OnboardingPage = () => {
         onSuccess: (result) => {
             // If result is boolean true (from Google flow or autoLogin) OR object with autoLogin: true
             if (result === true || result?.autoLogin) {
-                toast.success("¡Bienvenido al Dashboard!");
-                // Use navigate instead of window.location.href to preserve session state
-                navigate('/dashboard', { replace: true });
+                toast.success("¡Bienvenido al Dashboard!", { duration: 4000 });
+
+                // FLAGGING FOR REDIRECT - The useEffect will handle the actual navigation
+                // once the user object in context has the business_id
+                setIsRedirecting(true);
             } else {
                 toast.success("Revisa tu email para confirmar.");
                 setTimeout(() => navigate('/login'), 2000);
@@ -129,6 +144,7 @@ const OnboardingPage = () => {
         onError: (err) => {
             console.error(err);
             toast.error("Error: " + err.message);
+            setIsRedirecting(false);
         }
     });
 
