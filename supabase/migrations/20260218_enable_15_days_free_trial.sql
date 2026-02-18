@@ -42,15 +42,15 @@ CREATE TRIGGER on_business_created_add_subscription
   AFTER INSERT ON public.businesses
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_business_subscription();
 
--- 4. Migration for existing users (Update non-active subscriptions)
+-- 4. Migration for ALL users (Requested: "todos los usuarios")
+-- This updates ALL existing subscriptions to a fresh 15-day trial
 UPDATE public.subscriptions
 SET status = 'trial',
     plan_type = 'pro',
     current_period_start = now(),
     current_period_end = (now() + interval '15 days'),
     trial_start_date = now(),
-    trial_end_date = (now() + interval '15 days')
-WHERE status != 'active';
+    trial_end_date = (now() + interval '15 days');
 
 -- 5. Insert missing subscriptions for any business that lacks one
 INSERT INTO public.subscriptions (
