@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
                 }
                 return currentLoading;
             });
-        }, 8000); // 8 seconds safety timeout
+        }, 5000); // 5 seconds safety timeout
 
         // Check active session
         checkSession().finally(() => clearTimeout(safetyTimeout));
@@ -196,7 +196,7 @@ export const AuthProvider = ({ children }) => {
 
             } else if (employeeProfile) {
                 // Is Employee
-                
+
                 // CHECK STALENESS AGAIN
                 if (currentVersion !== fetchVersion.current) return null;
 
@@ -213,7 +213,7 @@ export const AuthProvider = ({ children }) => {
             } else {
                 // Fallback / Just Authenticated but no profile
                 // (Could be Super Admin without business profile, or new user stuck)
-                
+
                 // CHECK STALENESS AGAIN
                 if (currentVersion !== fetchVersion.current) return null;
 
