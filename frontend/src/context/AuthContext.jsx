@@ -160,12 +160,29 @@ export const AuthProvider = ({ children }) => {
                     .eq('business_id', businessProfile.business_id)
                     .maybeSingle();
 
+                let finalSubscription = subscription;
+
+                // FALLBACK: If not found by ID (maybe ID mismatch?), try via email link
+                if (!finalSubscription) {
+                    console.warn("⚠️ Subscription not found by Business ID. Trying fallback via Email.");
+                    const { data: fallbackSub } = await supabase
+                        .from('subscriptions')
+                        .select('*, businesses!inner(email)')
+                        .eq('businesses.email', authUser.email)
+                        .maybeSingle();
+
+                    if (fallbackSub) {
+                        console.log("✅ Found subscription via Email Fallback");
+                        finalSubscription = fallbackSub;
+                    }
+                }
+
                 let subStatus = 'inactive';
                 let daysRemaining = 0;
 
-                if (subscription) {
+                if (finalSubscription) {
                     const now = new Date();
-                    const end = new Date(subscription.current_period_end || subscription.trial_end_date);
+                    const end = new Date(finalSubscription.current_period_end || finalSubscription.trial_end_date);
                     const diffTime = end - now;
                     daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
