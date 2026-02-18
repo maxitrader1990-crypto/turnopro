@@ -180,6 +180,20 @@ export const AuthProvider = ({ children }) => {
                 // CHECK STALENESS AGAIN (before final set)
                 if (currentVersion !== fetchVersion.current) return null;
 
+                // DEBUG: Show toast with subscription details
+                console.log("DEBUG SUBSCRIPTION:", subscription);
+                if (subscription) {
+                    const dbgEnd = subscription.current_period_end || subscription.trial_end_date;
+                    toast('Suscripción: ' + subscription.status + ' | Días: ' + daysRemaining + ' | Fin: ' + new Date(dbgEnd).toLocaleDateString(), {
+                        duration: 6000,
+                        icon: '🐞',
+                        style: { background: '#333', color: '#fff' }
+                    });
+                } else {
+                    toast.error('No se encontró suscripción vinculada', { duration: 5000 });
+                }
+
+
                 const newUser = {
                     ...authUser,
                     ...businessProfile,
