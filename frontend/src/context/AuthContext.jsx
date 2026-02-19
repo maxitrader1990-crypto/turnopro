@@ -273,70 +273,103 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            console.log("Attempting Login...");
+            console.log("🚀 Attempting Robust Login...");
 
-            // STRATEGY 1: Supabase Client (Protected by 4s Timeout)
-            const clientPromise = supabase.auth.signInWithPassword({ email, password });
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('TIMEOUT_AUTH_CLIENT')), 4000)
+            // GLOBAL SAFETY TIMEOUT: If nothing happens in 10s, kill it.
+            const globalTimeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('GLOBAL_LOGIN_TIMEOUT')), 10000)
             );
 
-            let sessionData = null;
+            const loginLogic = async () => {
+                // STRATEGY 1: Supabase Client (Protected by 4s Timeout)
+                const clientPromise = supabase.auth.signInWithPassword({ email, password });
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('TIMEOUT_AUTH_CLIENT')), 4000)
+                );
 
-            try {
-                const { data, error } = await Promise.race([clientPromise, timeoutPromise]);
-                if (error) throw error;
-                sessionData = data;
-            } catch (err) {
-                if (err.message === 'TIMEOUT_AUTH_CLIENT') {
-                    console.warn("⚠️ Auth Client Timeout. Switching to REST Fallback.");
-                } else if (err.message.includes("Invalid login") || err.status === 400) {
-                    // If it's a real auth error (wrong password), DO NOT fallback. Throw it.
-                    throw err;
-                } else {
-                    console.warn("⚠️ Auth Client Error (Network?). Switching to REST Fallback.", err.message);
-                }
-            }
+                let sessionData = null;
 
-            // STRATEGY 2: REST Fallback (If Client failed/timed out AND we don't have a session)
-            if (!sessionData?.session) {
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-                const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                if (!response.ok) {
-                    const errJson = await response.json();
-                    throw new Error(errJson.msg || errJson.error_description || 'Error de autenticación (REST)');
+                try {
+                    const { data, error } = await Promise.race([clientPromise, timeoutPromise]);
+                    if (error) throw error;
+                    sessionData = data;
+                } catch (err) {
+                    if (err.message === 'TIMEOUT_AUTH_CLIENT') {
+                        console.warn("⚠️ Auth Client Timeout. Switching to REST Fallback.");
+                    } else if (err.message.includes("Invalid login") || err.status === 400) {
+                        // If it's a real auth error (wrong password), DO NOT fallback. Throw it.
+                        throw err;
+                    } else {
+                        console.warn("⚠️ Auth Client Error (Network?). Switching to REST Fallback.", err.message);
+                    }
                 }
 
-                const restData = await response.json();
+                // STRATEGY 2: REST Fallback (If Client failed/timed out AND we don't have a session)
+                if (!sessionData?.session) {
+                    console.log("🔄 Attempting REST Fallback Login...");
+                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-                // Manually set session in Supabase Client
-                const { error: setSessionError } = await supabase.auth.setSession({
-                    access_token: restData.access_token,
-                    refresh_token: restData.refresh_token
-                });
+                    // Fetch with AbortController for strict timeout
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), 5000); // 5s max for REST
 
-                if (setSessionError) throw setSessionError;
-                sessionData = { session: restData, user: restData.user };
-            }
+                    try {
+                        const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+                            method: 'POST',
+                            headers: {
+                                'apikey': supabaseKey,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ email, password }),
+                            signal: controller.signal
+                        });
+                        clearTimeout(id);
+
+                        if (!response.ok) {
+                            const errJson = await response.json();
+                            throw new Error(errJson.msg || errJson.error_description || 'Error de autenticación (REST)');
+                        }
+
+                        const restData = await response.json();
+
+                        // Manually set session in Supabase Client
+                        const { error: setSessionError } = await supabase.auth.setSession({
+                            access_token: restData.access_token,
+                            refresh_token: restData.refresh_token
+                        });
+
+                        if (setSessionError) throw setSessionError;
+                        sessionData = { session: restData, user: restData.user };
+
+                    } catch (fetchError) {
+                        clearTimeout(id);
+                        if (fetchError.name === 'AbortError') {
+                            throw new Error("El servidor tardó demasiado en responder (REST Timeout).");
+                        }
+                        throw fetchError;
+                    }
+                }
+
+                return true;
+            };
+
+            // Race the logic against the global timeout
+            await Promise.race([loginLogic(), globalTimeout]);
 
             toast.success('¡Bienvenido!');
             return true;
         } catch (error) {
-            console.error("Login Error:", error);
-            if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
-                return false;
+            console.error("🔥 Login Error:", error);
+            let msg = error.message || 'Error al iniciar sesión';
+
+            if (msg === 'GLOBAL_LOGIN_TIMEOUT') {
+                msg = "El inicio de sesión tardó demasiado. Por favor, revisa tu conexión.";
+            } else if (msg.includes('Timeout')) {
+                msg = "Tiempo de espera agotado. Intenta de nuevo.";
             }
-            toast.error(error.message || 'Error al iniciar sesión');
+
+            toast.error(msg);
             return false;
         }
     };
