@@ -186,8 +186,8 @@ export const AuthProvider = ({ children }) => {
                     const diffTime = end - now;
                     daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-                    if (subscription.status === 'active' && daysRemaining > 0) subStatus = 'active';
-                    else if (subscription.status === 'trial' && daysRemaining > 0) subStatus = 'trial';
+                    if (finalSubscription.status === 'active' && daysRemaining > 0) subStatus = 'active';
+                    else if (finalSubscription.status === 'trial' && daysRemaining > 0) subStatus = 'trial';
                     else if (daysRemaining <= 0) subStatus = 'expired';
                 } else {
                     // Fallback for no subscription record (shouldn't happen with new trigger)
