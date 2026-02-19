@@ -24,6 +24,9 @@ export const AuthProvider = ({ children }) => {
             });
         }, 5000); // 5 seconds safety timeout
 
+        // VERSION CHECK
+        toast.success("Sistema Actualizado v2.1", { duration: 4000, icon: '🚀' });
+
         // Check active session
         checkSession().finally(() => clearTimeout(safetyTimeout));
 
