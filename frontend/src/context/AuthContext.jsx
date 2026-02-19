@@ -222,19 +222,6 @@ export const AuthProvider = ({ children }) => {
                     // CHECK STALENESS AGAIN (before final set)
                     if (currentVersion !== fetchVersion.current) return null;
 
-                    // DEBUG: Show toast with subscription details
-                    console.log("DEBUG SUBSCRIPTION:", finalSubscription);
-                    if (finalSubscription) {
-                        const dbgEnd = finalSubscription.current_period_end || finalSubscription.trial_end_date;
-                        toast('Plan: ' + finalSubscription.status + ' | Fin: ' + new Date(dbgEnd).toLocaleDateString(), {
-                            duration: 6000,
-                            icon: '🐞',
-                            style: { background: '#333', color: '#fff' }
-                        });
-                    } else {
-                        toast.error(`Error: Sin suscripción (BizID: ${businessProfile.business_id})`, { duration: 6000 });
-                    }
-
 
                     const newUser = {
                         ...authUser,

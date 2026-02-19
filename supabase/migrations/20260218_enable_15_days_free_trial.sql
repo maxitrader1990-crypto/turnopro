@@ -1,5 +1,3 @@
-
--- 1. Ensure columns exist (Safely)
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subscriptions' AND column_name='trial_start_date') THEN
@@ -10,7 +8,6 @@ BEGIN
     END IF;
 END $$;
 
--- 2. Function for new businesses (TRIGGER FUNCTION)
 CREATE OR REPLACE FUNCTION public.handle_new_business_subscription()
 RETURNS trigger AS $$
 BEGIN
@@ -36,14 +33,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. Trigger
 DROP TRIGGER IF EXISTS on_business_created_add_subscription ON public.businesses;
 CREATE TRIGGER on_business_created_add_subscription
   AFTER INSERT ON public.businesses
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_business_subscription();
 
--- 4. Migration for ALL users (Requested: "todos los usuarios")
--- This updates ALL existing subscriptions to a fresh 15-day trial
 UPDATE public.subscriptions
 SET status = 'trial',
     plan_type = 'pro',
@@ -52,15 +46,8 @@ SET status = 'trial',
     trial_start_date = now(),
     trial_end_date = (now() + interval '15 days');
 
--- 5. Insert missing subscriptions for any business that lacks one
 INSERT INTO public.subscriptions (
-    business_id, 
-    status, 
-    plan_type, 
-    current_period_start, 
-    current_period_end, 
-    trial_start_date, 
-    trial_end_date
+    business_id, status, plan_type, current_period_start, current_period_end, trial_start_date, trial_end_date
 )
 SELECT b.id, 'trial', 'pro', now(), now() + interval '15 days', now(), now() + interval '15 days'
 FROM public.businesses b
