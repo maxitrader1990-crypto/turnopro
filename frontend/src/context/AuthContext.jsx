@@ -197,15 +197,14 @@ export const AuthProvider = ({ children }) => {
                             .single();
 
                         if (newSub) {
-                            console.log("✅ Auto-Repair Successful: Created new subscription.");
+                            console.log("✅ Auto-Repair Successful");
                             finalSubscription = newSub;
                             toast.success("Sistema autoreparado: Suscripción activada", { icon: '🔧' });
-                        } else {
-                            console.error("❌ Auto-Repair Failed:", createError);
                         }
                     }
-                }
+                } // End if (!finalSubscription)
 
+                // --- STATUS CALCULATION ---
                 let subStatus = 'inactive';
                 let daysRemaining = 0;
 
@@ -217,15 +216,12 @@ export const AuthProvider = ({ children }) => {
 
                     if (finalSubscription.status === 'active' && daysRemaining > 0) subStatus = 'active';
                     else if (finalSubscription.status === 'trial' && daysRemaining > 0) subStatus = 'trial';
-                    else if (daysRemaining <= 0) subStatus = 'expired';
+                    else if (daysRemaining <= 0) { subStatus = 'expired'; }
                 } else {
-                    // Fallback for no subscription record (shouldn't happen with new trigger)
                     subStatus = 'expired';
                 }
 
-                // CHECK STALENESS AGAIN (before final set)
                 if (currentVersion !== fetchVersion.current) return null;
-
 
                 const newUser = {
                     ...authUser,
@@ -242,11 +238,7 @@ export const AuthProvider = ({ children }) => {
                 return newUser;
 
             } else if (employeeProfile) {
-                // Is Employee
-
-                // CHECK STALENESS AGAIN
                 if (currentVersion !== fetchVersion.current) return null;
-
                 const newUser = {
                     ...authUser,
                     business_id: employeeProfile.business_id,
@@ -258,22 +250,17 @@ export const AuthProvider = ({ children }) => {
                 return newUser;
 
             } else {
-                // Fallback / Just Authenticated but no profile
-                // (Could be Super Admin without business profile, or new user stuck)
-
-                // CHECK STALENESS AGAIN
                 if (currentVersion !== fetchVersion.current) return null;
-
                 const newUser = {
                     ...authUser,
                     isSuperAdmin,
-                    role: isSuperAdmin ? 'superadmin' : 'user' // Basic fallback
+                    role: isSuperAdmin ? 'superadmin' : 'user'
                 };
                 setUser(newUser);
                 return newUser;
             }
 
-            console.log(`✅ Profile Load Complete in ${Math.round(performance.now() - startTime)}ms`);
+            console.log("✅ Profile Load Complete");
 
         } catch (error) {
             // CHECK STALENESS
