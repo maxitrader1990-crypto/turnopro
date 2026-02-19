@@ -2,6 +2,8 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import SplashScreen from './components/SplashScreen';
+import toast from 'react-hot-toast';
+
 
 // Initial Load Critical Components
 import Login from './pages/Login';
@@ -130,7 +132,23 @@ const SuperAdminRoute = () => {
     return <Outlet />;
 };
 
+
+
 function App() {
+    // Network Status Monitoring
+    React.useEffect(() => {
+        const handleOffline = () => toast.error("Sin conexión a internet", { icon: '📡' });
+        const handleOnline = () => toast.success("Conexión restaurada", { icon: 'lte' });
+
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('online', handleOnline);
+
+        return () => {
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('online', handleOnline);
+        };
+    }, []);
+
     return (
         <BrowserRouter>
             <AuthProvider>

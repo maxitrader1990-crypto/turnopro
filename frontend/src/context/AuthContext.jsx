@@ -17,15 +17,12 @@ export const AuthProvider = ({ children }) => {
         const safetyTimeout = setTimeout(() => {
             setLoading((currentLoading) => {
                 if (currentLoading) {
-                    console.error("Safety Timeout Triggered: Forcing app load.");
+                    console.warn("Safety Timeout Triggered");
                     return false;
                 }
                 return currentLoading;
             });
-        }, 5000); // 5 seconds safety timeout
-
-        // VERSION CHECK
-        toast.success("Sistema Actualizado v2.1", { duration: 4000, icon: '🚀' });
+        }, 5000);
 
         // Check active session
         checkSession().finally(() => clearTimeout(safetyTimeout));
@@ -77,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         const currentVersion = ++fetchVersion.current;
 
         try {
-            console.log(`⚡ Optimizing Profile Fetch for: ${authUser.email} (v${currentVersion})`);
+            // console.log(`⚡ Optimizing Profile Fetch for: ${authUser.email}`);
 
             // 0. LINK IDENTITY (Critical for Manual Login vs Google Login)
             // Ensures that if the email matches a business owners email, the user_id is updated to the current one.
