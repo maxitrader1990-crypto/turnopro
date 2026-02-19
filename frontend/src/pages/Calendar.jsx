@@ -11,33 +11,37 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, Check
 
 const localizer = momentLocalizer(moment);
 
-// --- CUSTOM STYLES FOR DARK THEME ---
+// --- CYBERPUNK / TECH THEME STYLES ---
 const calendarStyles = `
-  /* General Calendar Background */
+  /* Base Calendar */
   .rbc-calendar {
-    font-family: 'Inter', sans-serif;
-    color: #e5e7eb;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    color: #e0e0e0;
   }
 
   /* Header Grid */
   .rbc-header {
-    background-color: rgba(255, 255, 255, 0.05); /* Premium Surface */
-    color: #f59e0b; /* Urban Accent */
-    font-weight: 700;
+    background: rgba(13, 13, 16, 0.8);
+    color: #00f3ff; /* Cyan Neon */
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    letter-spacing: 0.15em;
+    padding: 16px 0;
+    border-bottom: 2px solid rgba(0, 243, 255, 0.2) !important;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
   }
 
   /* Off-Range Days */
   .rbc-off-range-bg {
-    background-color: rgba(0, 0, 0, 0.2) !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    background-image: radial-gradient(circle at center, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
   /* Today Highlight */
   .rbc-today {
-    background-color: rgba(245, 158, 11, 0.05) !important; /* Amber Tint */
+    background-color: rgba(0, 243, 255, 0.03) !important;
+    border: 1px solid rgba(0, 243, 255, 0.1);
   }
 
   /* Grid Lines */
@@ -48,68 +52,81 @@ const calendarStyles = `
   .rbc-time-view,
   .rbc-header + .rbc-header,
   .rbc-day-slot .rbc-time-slot {
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
   }
 
   /* Time Column */
   .rbc-timeslot-group, .rbc-time-content, .rbc-time-header-content {
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
   }
   
   .rbc-time-gutter .rbc-timeslot-group {
-    color: #9ca3af; /* Gray 400 */
-    font-size: 0.75rem;
-    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #6b7280;
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    border-color: rgba(255, 255, 255, 0.08) !important;
   }
 
   /* Current Time Indicator */
   .rbc-current-time-indicator {
-    background-color: #f59e0b !important;
+    background-color: #ff0055 !important; /* Neon Pink */
+    height: 2px;
+    box-shadow: 0 0 8px rgba(255, 0, 85, 0.8);
+  }
+
+  /* Remove default event styles to use custom component fully */
+  .rbc-event {
+    background-color: transparent;
+    border: none;
+    padding: 1px;
+    outline: none;
   }
 `;
 
-// --- CUSTOM COMPONENTS ---
-
+// --- MODERN TOOLBAR ---
 const CustomToolbar = (toolbar) => {
-    const goToBack = () => { toolbar.onNavigate('PREV'); };
-    const goToNext = () => { toolbar.onNavigate('NEXT'); };
-    const goToCurrent = () => { toolbar.onNavigate('TODAY'); };
+    const goToBack = () => toolbar.onNavigate('PREV');
+    const goToNext = () => toolbar.onNavigate('NEXT');
+    const goToCurrent = () => toolbar.onNavigate('TODAY');
 
     const label = () => {
         const date = moment(toolbar.date);
         return (
-            <span className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-                <CalendarIcon className="text-urban-accent" size={20} />
-                <span className="uppercase">{date.format('MMMM YYYY')}</span>
+            <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 tracking-tighter flex items-center gap-3">
+                <span className="uppercase">{date.format('MMMM')}</span>
+                <span className="text-white/30 font-light">{date.format('YYYY')}</span>
             </span>
         );
     };
 
     return (
-        <div className="flex items-center justify-between mb-6 p-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-md">
-            <div className="flex items-center gap-4">
-                <button onClick={goToBack} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-all">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 p-1 gap-4">
+            <div className="flex items-center gap-6 bg-black/20 p-2 rounded-2xl border border-white/5 backdrop-blur-xl">
+                <button onClick={goToBack} className="p-3 rounded-xl hover:bg-white/10 text-cyan-500 hover:text-cyan-300 transition-all active:scale-95">
                     <ChevronLeft size={24} />
                 </button>
-                <div className="text-center min-w-[200px]">{label()}</div>
-                <button onClick={goToNext} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-all">
+                <div className="text-center min-w-[220px] select-none">{label()}</div>
+                <button onClick={goToNext} className="p-3 rounded-xl hover:bg-white/10 text-cyan-500 hover:text-cyan-300 transition-all active:scale-95">
                     <ChevronRight size={24} />
                 </button>
             </div>
 
-            <div className="flex gap-2">
-                <button onClick={goToCurrent} className="px-4 py-2 text-sm font-bold text-urban-accent border border-urban-accent/30 rounded-lg hover:bg-urban-accent hover:text-black transition-all">
+            <div className="flex gap-3 bg-black/20 p-2 rounded-2xl border border-white/5 backdrop-blur-xl">
+                <button
+                    onClick={goToCurrent}
+                    className="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all active:scale-95"
+                >
                     HOY
                 </button>
-                <div className="h-6 w-[1px] bg-white/10 mx-2 self-center"></div>
+                <div className="w-[1px] bg-white/10 my-1 mx-2"></div>
                 {['month', 'week', 'day'].map(view => (
                     <button
                         key={view}
                         onClick={() => toolbar.onView(view)}
-                        className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${toolbar.view === view
-                            ? 'bg-white text-black shadow-lg shadow-white/20'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            } uppercase`}
+                        className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all border ${toolbar.view === view
+                            ? 'bg-white/10 text-cyan-400 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                            : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
+                            } uppercase tracking-wide`}
                     >
                         {view === 'month' ? 'Mes' : view === 'week' ? 'Semana' : 'Día'}
                     </button>
@@ -119,61 +136,63 @@ const CustomToolbar = (toolbar) => {
     );
 };
 
+// --- TECH EVENT COMPONENT ---
 const CustomEvent = ({ event }) => {
+    const isCompleted = event.resource.status === 'completed';
+    const isPending = event.resource.status === 'pending';
+
     return (
-        <div className="relative group h-full w-full">
-            {/* Event Display */}
-            <div className={`h-full w-full px-2 py-1 rounded-md border-l-4 shadow-sm transition-all duration-300
-                ${event.resource.status === 'completed'
-                    ? 'bg-green-900/40 border-green-500 text-green-100'
-                    : 'bg-urban-accent/20 border-urban-accent text-urban-accent'
-                } hover:scale-[1.02] hover:brightness-110`}
+        <div className="relative group h-full w-full overflow-visible z-10">
+            {/* Event Card */}
+            <div className={`h-full w-full px-2 py-1.5 rounded-lg border-l-[3px] shadow-lg backdrop-blur-sm transition-all duration-300
+                ${isCompleted
+                    ? 'bg-green-500/10 border-green-500 text-green-100'
+                    : 'bg-cyan-500/10 border-cyan-400 text-cyan-100'
+                } 
+                group-hover:scale-[1.03] group-hover:bg-opacity-20 group-hover:z-50 ring-1 ring-white/5`}
             >
-                <div className="text-xs font-bold truncate">{event.resource.start_time ? moment(event.start).format('HH:mm') : ''}</div>
-                <div className="text-xs font-semibold truncate">{event.resource.customer_name}</div>
+                <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-mono opacity-80 leading-none mb-0.5 block">
+                        {moment(event.start).format('HH:mm')}
+                    </span>
+                    {isCompleted && <CheckCircle size={10} className="text-green-400" />}
+                </div>
+                <div className="text-xs font-bold truncate leading-tight tracking-wide shadow-black drop-shadow-md">
+                    {event.resource.customer_name}
+                </div>
+                <div className="text-[9px] truncate opacity-70 mt-0.5">
+                    {event.resource.service_name}
+                </div>
             </div>
 
-            {/* HOVER TOOLTIP / CARD */}
-            <div className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2 w-72 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                <div className="bg-[#1a1a20] border border-white/10 rounded-xl shadow-2xl p-4 text-left relative overflow-hidden">
-                    {/* Glow effect inside card */}
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-urban-accent/10 rounded-full blur-xl"></div>
+            {/* HOVER HOLOGRAM CARD */}
+            <div className="opacity-0 group-hover:opacity-100 absolute left-1/2 -translate-x-1/2 top-full mt-3 w-64 pointer-events-none z-[100] transition-all duration-300 scale-95 group-hover:scale-100">
+                <div className="bg-[#0f1115] border border-cyan-500/30 rounded-2xl p-0 overflow-hidden shadow-[0_0_50px_rgba(0,243,255,0.15)]">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 p-3 border-b border-cyan-500/20 flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-cyan-400">ID: #{event.id.toString().slice(0, 4)}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isCompleted ? 'border-green-500/50 text-green-400 bg-green-500/10' : 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10'}`}>
+                            {isCompleted ? 'COMPLETADO' : 'PENDIENTE'}
+                        </span>
+                    </div>
 
-                    <div className="flex items-center gap-3 mb-3 border-b border-white/5 pb-2">
-                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-urban-accent font-bold">
-                            {event.resource.customer_name.charAt(0)}
-                        </div>
-                        <div>
-                            <p className="text-white font-bold text-sm leading-tight">{event.resource.customer_name}</p>
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <User size={10} /> Cliente
+                    {/* Body */}
+                    <div className="p-4 space-y-3 relative">
+                        {/* Background Grid Effect */}
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
+
+                        <div className="relative z-10">
+                            <h4 className="text-white font-bold text-lg leading-tight">{event.resource.customer_name}</h4>
+                            <p className="text-gray-400 text-xs mt-1 flex items-center gap-1.5">
+                                <Clock size={12} className="text-cyan-500" />
+                                {moment(event.start).format('HH:mm')} - {moment(event.end).format('HH:mm')}
                             </p>
                         </div>
-                    </div>
 
-                    <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">Servicio:</span>
-                            <span className="text-white font-medium text-right">{event.resource.service_name}</span>
+                        <div className="bg-white/5 rounded-lg p-2 border border-white/5 relative z-10">
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Servicio</p>
+                            <p className="text-sm font-medium text-cyan-100">{event.resource.service_name}</p>
                         </div>
-                        <div className="flex justify-between">
-                            <span className="text-gray-400">Horario:</span>
-                            <span className="text-urban-accent font-mono text-xs bg-urban-accent/10 px-1.5 py-0.5 rounded">
-                                {moment(event.start).format('HH:mm')} - {moment(event.end).format('HH:mm')}
-                            </span>
-                        </div>
-                        <div className="flex justify-between items-center pt-2">
-                            <span className="text-gray-400">Estado:</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wide
-                                ${event.resource.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-500'}
-                            `}>
-                                {event.resource.status === 'completed' ? 'Completado' : 'Pendiente'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="mt-3 pt-2 border-t border-white/5 text-[10px] text-center text-gray-500 italic">
-                        Click para ver detalles
                     </div>
                 </div>
             </div>
@@ -184,12 +203,20 @@ const CustomEvent = ({ event }) => {
 const CalendarPage = () => {
     const { user } = useAuth();
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const queryClient = useQueryClient();
 
-    const { data: appointments } = useQuery({
+    const { data: appointmentData, refetch, isRefetching } = useQuery({
         queryKey: ['appointments', user?.business_id],
         queryFn: async () => {
-            if (!user?.business_id) return { data: [] };
+            // 1. Validate User Context
+            if (!user?.business_id) {
+                console.warn("⚠️ Calendar: No business_id found for user.");
+                return [];
+            }
 
+            console.log("🔄 Fetching Appointments for Business:", user.business_id);
+
+            // 2. Fetch Data
             const { data, error } = await supabase
                 .from('appointments')
                 .select(`
@@ -204,59 +231,61 @@ const CalendarPage = () => {
                 .eq('business_id', user.business_id);
 
             if (error) {
-                console.error("Error fetching appointments:", error);
+                console.error("🔥 Error fetching appointments:", error);
+                toast.error("Error al cargar turnos");
                 throw error;
             }
 
-            // Map to event format
+            console.log("✅ Raw Appointments Data:", data);
+
+            // 3. Robust Mapping
             const mapped = data.map(app => {
-                // Parse date string (YYYY-MM-DD or full ISO)
-                const datePart = app.appointment_date.split('T')[0]; // Ensure we just get YYYY-MM-DD
+                try {
+                    // Safe Date Parsing
+                    // We treat appointment_date as the anchor YYYY-MM-DD
+                    const dateAnchor = moment(app.appointment_date).format('YYYY-MM-DD');
 
-                let start, end;
+                    // Parse start time (HH:mm:ss) strictly
+                    const startMoment = app.start_time
+                        ? moment(`${dateAnchor}T${app.start_time}`)
+                        : moment(app.appointment_date); // Fallback to raw date if no time
 
-                if (app.start_time) {
-                    // Combine date and time
-                    start = new Date(`${datePart}T${app.start_time}`);
-                } else {
-                    start = new Date(app.appointment_date);
+                    // Calculate End Time
+                    let endMoment;
+                    if (app.end_time) {
+                        endMoment = moment(`${dateAnchor}T${app.end_time}`);
+                    } else {
+                        // Default duration fallback
+                        const duration = app.services?.duration_minutes || 60;
+                        endMoment = startMoment.clone().add(duration, 'minutes');
+                    }
+
+                    return {
+                        id: app.id,
+                        title: `${app.customers?.first_name || 'Cliente'} ${app.customers?.last_name || ''}`,
+                        start: startMoment.toDate(), // Convert moment to native JS Date for BigCalendar
+                        end: endMoment.toDate(),
+                        resource: {
+                            ...app,
+                            customer_name: `${app.customers?.first_name || 'Cliente'} ${app.customers?.last_name || ''}`,
+                            service_name: app.services?.name || 'Servicio General',
+                            status: app.status || 'pending'
+                        }
+                    };
+                } catch (err) {
+                    console.error("⚠️ Error mapping appointment:", app, err);
+                    return null;
                 }
+            }).filter(Boolean); // Filter out any failed mappings
 
-                if (app.end_time) {
-                    end = new Date(`${datePart}T${app.end_time}`);
-                } else {
-                    const duration = app.services?.duration_minutes || 60;
-                    end = new Date(start.getTime() + duration * 60000);
-                }
-
-                return {
-                    id: app.id,
-                    customer_name: `${app.customers?.first_name || 'Cliente'} ${app.customers?.last_name || ''}`,
-                    service_name: app.services?.name || 'Servicio',
-                    start: start,
-                    end: end,
-                    status: app.status || 'pending'
-                };
-            });
-
-            return { data: mapped };
+            console.log("📅 Mapped Events for Calendar:", mapped);
+            return mapped;
         },
-        enabled: !!user?.business_id
+        enabled: !!user?.business_id,
+        staleTime: 1000 * 60 * 5 // 5 minutes
     });
 
-    const events = appointments?.data?.map(app => ({
-        id: app.id,
-        title: `${app.customer_name}`,
-        start: app.start,
-        end: app.end,
-        resource: app
-    })) || [];
-
-    const handleSelectEvent = (event) => {
-        setSelectedEvent(event);
-    };
-
-    const queryClient = useQueryClient();
+    const handleSelectEvent = (event) => setSelectedEvent(event);
 
     const completeMutation = useMutation({
         mutationFn: async (appointmentId) => {
@@ -264,96 +293,129 @@ const CalendarPage = () => {
                 .from('appointments')
                 .update({ status: 'completed' })
                 .eq('id', appointmentId);
-
             if (error) throw error;
         },
         onSuccess: () => {
-            toast.success('Cita completada con éxito');
+            toast.success('¡Turno completado!', { icon: '✅' });
             queryClient.invalidateQueries(['appointments']);
             setSelectedEvent(null);
         },
-        onError: (error) => {
-            console.error('Error completing appointment:', error);
-            toast.error('Error al completar la cita');
-        }
+        onError: () => toast.error('Error al actualizar estado')
     });
 
     return (
-        <div className="h-[85vh] bg-premium-bg p-6 rounded-3xl shadow-2xl border border-white/5 relative overflow-hidden">
+        <div className="h-[calc(100vh-2rem)] bg-[#09090b] p-6 rounded-[2rem] shadow-2xl border border-white/5 relative overflow-hidden flex flex-col">
             {/* Inject Custom Styles */}
             <style>{calendarStyles}</style>
 
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-urban-accent/5 rounded-full blur-[100px] pointer-events-none"></div>
+            {/* Background Ambient Effects */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-            <BigCalendar
-                localizer={localizer}
-                events={events}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: '100%' }}
-                onSelectEvent={handleSelectEvent}
-                views={['month', 'week', 'day']}
-                defaultView="week"
-                components={{
-                    toolbar: CustomToolbar,
-                    event: CustomEvent
-                }}
-            />
+            {/* Stats / Header Bar */}
+            <div className="flex justify-between items-center mb-4 relative z-10 px-2">
+                <div>
+                    <h1 className="text-2xl font-black text-white tracking-tight">AGENDA <span className="text-cyan-400">DIGITAL</span></h1>
+                    <p className="text-gray-500 text-xs font-mono">
+                        {appointmentData?.length || 0} TURNOS REGISTRADOS
+                    </p>
+                </div>
+                <button
+                    onClick={() => refetch()}
+                    disabled={isRefetching}
+                    className={`p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 transition-all ${isRefetching ? 'animate-spin text-cyan-400' : ''}`}
+                    title="Actualizar Agenda"
+                >
+                    <div className="w-5 h-5 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" /></svg>
+                    </div>
+                </button>
+            </div>
 
-            {/* Appointment Detail Modal */}
+            {/* Calendar Container */}
+            <div className="flex-1 bg-black/40 rounded-3xl border border-white/5 p-4 backdrop-blur-md relative z-10">
+                <BigCalendar
+                    localizer={localizer}
+                    events={appointmentData || []}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: '100%' }}
+                    onSelectEvent={handleSelectEvent}
+                    views={['month', 'week', 'day']}
+                    defaultView="week"
+                    components={{
+                        toolbar: CustomToolbar,
+                        event: CustomEvent
+                    }}
+                    // Cyberpunk Settings
+                    step={30}
+                    timeslots={2}
+                    min={new Date(0, 0, 0, 8, 0, 0)} // Start at 8 AM
+                    max={new Date(0, 0, 0, 22, 0, 0)} // End at 10 PM
+                />
+            </div>
+
+            {/* Appointment Detail Modal (Redesigned) */}
             <Modal isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title="Detalles del Turno">
                 {selectedEvent && (
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
-                            <div className="w-16 h-16 rounded-full bg-urban-accent/10 flex items-center justify-center text-urban-accent font-bold text-2xl">
+                    <div className="space-y-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl -z-10"></div>
+
+                        <div className="flex items-center gap-5 border-b border-gray-100/10 pb-6">
+                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-black text-3xl shadow-[0_0_30px_rgba(6,182,212,0.15)]">
                                 {selectedEvent.resource.customer_name.charAt(0)}
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">{selectedEvent.resource.customer_name}</h3>
-                                <p className="text-sm text-gray-500">Cliente Recurrente</p>
+                                <h3 className="text-2xl font-bold text-gray-800 dark:text-white leading-none mb-1">{selectedEvent.resource.customer_name}</h3>
+                                <p className="text-sm text-gray-500 font-mono">ID: {selectedEvent.id}</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-50 p-4 rounded-xl">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Servicio</p>
-                                <p className="font-semibold text-gray-800 flex items-center gap-2">
-                                    <Clock size={16} className="text-urban-accent" />
+                            <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Servicio</p>
+                                <p className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                                    <Clock size={16} className="text-cyan-500" />
                                     {selectedEvent.resource.service_name}
                                 </p>
                             </div>
-                            <div className="bg-gray-50 p-4 rounded-xl">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Horario</p>
-                                <p className="font-semibold text-gray-800">
+                            <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Horario</p>
+                                <p className="font-semibold text-gray-800 dark:text-gray-200 font-mono">
                                     {moment(selectedEvent.start).format('HH:mm')} - {moment(selectedEvent.end).format('HH:mm')}
                                 </p>
                             </div>
                         </div>
 
-                        <div>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Estado Actual</p>
-                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold
-                                ${selectedEvent.resource.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}
+                        <div className="flex justify-between items-center bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Estado Actual</span>
+                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
+                                ${selectedEvent.resource.status === 'completed'
+                                    ? 'bg-green-500/10 border-green-500/30 text-green-500'
+                                    : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500'}
                             `}>
-                                {selectedEvent.resource.status === 'completed' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-                                <span className="capitalize">
-                                    {selectedEvent.resource.status === 'completed' ? 'Completado' :
-                                        selectedEvent.resource.status === 'pending' ? 'Pendiente' : selectedEvent.resource.status}
-                                </span>
+                                {selectedEvent.resource.status === 'completed' ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                                {selectedEvent.resource.status === 'completed' ? 'Completado' : 'Pendiente'}
                             </span>
                         </div>
 
                         {selectedEvent.resource.status === 'pending' && (
-                            <div className="pt-6">
+                            <div className="pt-4">
                                 <button
                                     onClick={() => completeMutation.mutate(selectedEvent.id)}
                                     disabled={completeMutation.isPending}
-                                    className={`w-full py-3 rounded-xl text-white font-bold transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg ${completeMutation.isPending
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                                    className={`w-full py-4 rounded-xl text-white font-bold transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg relative overflow-hidden group ${completeMutation.isPending
+                                        ? 'bg-gray-600 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-green-500/30'
                                         }`}
                                 >
-                                    {completeMutation.isPending ? 'Procesando...' : 'Marcar como Completado'}
+                                    <span className="relative z-10 flex items-center justify-center gap-2">
+                                        {completeMutation.isPending ? 'Procesando...' : (
+                                            <>
+                                                <CheckCircle size={20} /> MARCAR COMO COMPLETADO
+                                            </>
+                                        )}
+                                    </span>
                                 </button>
                             </div>
                         )}
