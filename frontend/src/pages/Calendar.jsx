@@ -361,25 +361,37 @@ const CalendarPage = () => {
 
             {/* Calendar Container */}
             <div className="flex-1 bg-black/40 rounded-3xl border border-white/5 p-4 backdrop-blur-md relative z-10">
-                <BigCalendar
-                    localizer={localizer}
-                    events={appointmentData || []}
-                    startAccessor="start"
-                    endAccessor="end"
-                    style={{ height: '100%' }}
-                    onSelectEvent={handleSelectEvent}
-                    views={['month', 'week', 'day']}
-                    defaultView="week"
-                    components={{
-                        toolbar: CustomToolbar,
-                        event: CustomEvent
-                    }}
-                    // Cyberpunk Settings
-                    step={30}
-                    timeslots={2}
-                    min={new Date(0, 0, 0, 8, 0, 0)} // Start at 8 AM
-                    max={new Date(0, 0, 0, 22, 0, 0)} // End at 10 PM
-                />
+                {appointmentData && appointmentData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <div className="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
+                            <CalendarIcon size={40} className="text-gray-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-300">No hay turnos registrados</h3>
+                        <p className="text-gray-500 max-w-md mt-2">
+                            Aún no has recibido reservas. Comparte tu link de reservas para comenzar.
+                        </p>
+                    </div>
+                ) : (
+                    <BigCalendar
+                        localizer={localizer}
+                        events={appointmentData || []}
+                        startAccessor="start"
+                        endAccessor="end"
+                        style={{ height: '100%' }}
+                        onSelectEvent={handleSelectEvent}
+                        views={['month', 'week', 'day']}
+                        defaultView="week"
+                        components={{
+                            toolbar: CustomToolbar,
+                            event: CustomEvent
+                        }}
+                        // Cyberpunk Settings
+                        step={30}
+                        timeslots={2}
+                        min={new Date(0, 0, 0, 8, 0, 0)} // Start at 8 AM
+                        max={new Date(0, 0, 0, 22, 0, 0)} // End at 10 PM
+                    />
+                )}
             </div>
 
             {/* Appointment Detail Modal (Redesigned) */}
