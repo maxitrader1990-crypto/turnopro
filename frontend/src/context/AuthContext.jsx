@@ -11,55 +11,72 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const fetchVersion = useRef(0);
+    const [debugLogs, setDebugLogs] = useState([]);
+
+    const addDebugLog = (msg) => {
+        setDebugLogs(prev => [...prev.slice(-19), `${new Date().toISOString().split('T')[1]} - ${msg}`]);
+    };
 
     useEffect(() => {
-        // Safety timeout: Ensure app loads even if everything else hangs
-        const safetyTimeout = setTimeout(() => {
-            setLoading((currentLoading) => {
-                if (currentLoading) {
-                    console.warn("Safety Timeout Triggered");
-                    return false;
+        let mounted = true;
+
+        const initAuth = async () => {
+            try {
+                addDebugLog("Auth Init Started");
+                // 1. Get Initial Session
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    addDebugLog(`Auth Init Error: ${error.message}`);
+                    throw error;
                 }
-                return currentLoading;
-            });
-        }, 5000);
 
-        // Check active session
-        checkSession().finally(() => clearTimeout(safetyTimeout));
+                if (session?.user) {
+                    addDebugLog(`Found existing session: ${session.user.email}`);
+                    // Fetch profile. If this succeeds, it sets 'user'.
+                    await fetchBusinessProfile(session.user);
+                } else {
+                    addDebugLog("No existing session found");
+                }
+            } catch (err) {
+                console.error("Auth Init Error:", err);
+                addDebugLog(`Auth Init Exception: ${err.message}`);
+            } finally {
+                // Only stop loading if mounted
+                if (mounted) setLoading(false);
+            }
+        };
 
-        // Listen for auth changes
+        // Start Init
+        initAuth();
+
+        // 2. Listen for future changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN') {
+            console.log(`Auth Event: ${event}`);
+            addDebugLog(`Auth Event: ${event}`);
+
+            if (event === 'SIGNED_IN' && session?.user) {
+                // Only fetch if we don't have the user yet or it's a different user
+                // Actually, always safe to fetch, fetchVersion handles ordering
                 await fetchBusinessProfile(session.user);
+                if (mounted) setLoading(false); // Ensure loading stops on late login
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
+                if (mounted) setLoading(false);
+            } else if (event === 'INITIAL_SESSION') {
+                // Handled by getSession mostly, but good backup
+                if (session?.user) {
+                    await fetchBusinessProfile(session.user);
+                }
+                if (mounted) setLoading(false);
             }
         });
 
         return () => {
+            mounted = false;
             subscription.unsubscribe();
-            clearTimeout(safetyTimeout);
         };
     }, []);
-
-    const checkSession = async () => {
-        try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error) throw error;
-            if (session?.user) {
-                await fetchBusinessProfile(session.user);
-            }
-        } catch (error) {
-            if (error.name === 'AbortError' || error.message.includes('AbortError')) {
-                // Ignore fetch aborts
-                console.log('Session check aborted via AbortController');
-            } else {
-                console.error('Session check error', error);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const refreshProfile = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -603,6 +620,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         register,
         refreshProfile, // Expose this
+        debugLogs,      // Expose debug logs
         // Expose supabase client directly if needed, or helper
         api: null // We are removing `api` axios instance. Components should use `supabase` import.
     };

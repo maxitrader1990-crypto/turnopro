@@ -285,6 +285,33 @@ const CalendarPage = () => {
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 
+    // --- REAL-TIME UPDATES ---
+    React.useEffect(() => {
+        if (!user?.business_id) return;
+
+        const channel = supabase
+            .channel('appointments-realtime')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to INSERT, UPDATE, DELETE
+                    schema: 'public',
+                    table: 'appointments',
+                    filter: `business_id=eq.${user.business_id}`
+                },
+                (payload) => {
+                    console.log("🔔 Real-time change detected:", payload);
+                    toast.success('Agenda actualizada', { icon: '📅', duration: 2000 });
+                    refetch(); // Trigger re-fetch
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user?.business_id, refetch]);
+
     const handleSelectEvent = (event) => setSelectedEvent(event);
 
     const completeMutation = useMutation({

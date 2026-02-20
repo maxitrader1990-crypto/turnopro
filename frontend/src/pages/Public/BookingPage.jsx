@@ -377,19 +377,66 @@ const BookingPage = () => {
         createAppointmentMutation.mutate(data);
     };
 
+    // --- AVAILABILITY FETCHING ---
+    const { data: busySlots } = useQuery({
+        queryKey: ['availability', business?.id, selectedEmployee?.id, selectedDate],
+        queryFn: async () => {
+            if (!business?.id || !selectedEmployee?.id || !selectedDate) return [];
+
+            const dateStr = format(selectedDate, 'yyyy-MM-dd');
+            console.log("Checking availability for:", dateStr);
+
+            const { data, error } = await supabase
+                .rpc('get_day_appointments', {
+                    p_business_id: business.id,
+                    p_employee_id: selectedEmployee.id,
+                    p_date: dateStr
+                });
+
+            if (error) {
+                console.error("Error fetching availability:", error);
+                return [];
+            }
+            return data.map(slot => ({
+                start: moment(`${dateStr}T${slot.start_time}`),
+                end: moment(`${dateStr}T${slot.end_time}`)
+            }));
+        },
+        enabled: !!(business?.id && selectedEmployee?.id && selectedDate && step === 3)
+    });
+
     // --- TIME SLOTS ---
     const generateTimeSlots = () => {
         if (!selectedDate || !selectedService) return [];
         const slots = [];
         let start = setMinutes(setHours(selectedDate, 9), 0);
         const end = setMinutes(setHours(selectedDate, 20), 0);
+        const now = new Date();
 
         while (start < end) {
-            if (isSameDay(selectedDate, new Date()) && isAfter(new Date(), start)) {
+            const slotStart = moment(start);
+            const slotEnd = slotStart.clone().add(selectedService.duration_minutes, 'minutes');
+
+            // 1. Past Time Check (If today)
+            if (isSameDay(selectedDate, now) && isAfter(now, start)) {
                 start = addMinutes(start, 30);
                 continue;
             }
-            slots.push(new Date(start));
+
+            // 2. Overlap Check
+            let isBusy = false;
+            if (busySlots) {
+                // Check if this slot overlaps with any busy slot
+                isBusy = busySlots.some(busy => {
+                    // Classic Overlap: (StartA < EndB) and (EndA > StartB)
+                    return slotStart.isBefore(busy.end) && slotEnd.isAfter(busy.start);
+                });
+            }
+
+            if (!isBusy) {
+                slots.push(new Date(start));
+            }
+
             start = addMinutes(start, 30);
         }
         return slots;

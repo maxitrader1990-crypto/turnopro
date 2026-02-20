@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 // Initial Load Critical Components
 import Login from './pages/Login';
 import Layout from './components/Layout';
+import DebugOverlay from './components/DebugOverlay';
 
 // Helper for auto-reload on version mismatch
 const lazyWithRetry = (componentImport) =>
@@ -157,6 +158,7 @@ function App() {
                         <Route path="/login" element={<Login />} />
                         <Route path="/onboarding" element={<OnboardingPage />} />
                         <Route path="/book/:slug" element={<BookingPage />} />
+                        <Route path="/client" element={<ClientHome />} />
                         <Route path="/points/:slug" element={<CustomerPointsPage />} />
 
                         {/* Admin Routes */}
@@ -202,9 +204,9 @@ function App() {
                         </Route>
                     </Routes>
                 </Suspense>
+                <DebugOverlay />
             </AuthProvider>
         </BrowserRouter>
     );
 }
-
 export default App;
