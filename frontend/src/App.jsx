@@ -42,6 +42,7 @@ const CalendarPage = lazyWithRetry(() => import('./pages/Calendar'));
 const Settings = lazyWithRetry(() => import('./pages/Settings'));
 const OnboardingPage = lazyWithRetry(() => import('./pages/Public/OnboardingPage'));
 const BookingPage = lazyWithRetry(() => import('./pages/Public/BookingPage'));
+const ClientHome = lazyWithRetry(() => import('./pages/ClientHome'));
 const CustomerPointsPage = lazyWithRetry(() => import('./pages/Public/CustomerPointsPage'));
 const Reports = lazyWithRetry(() => import('./pages/Reports'));
 const Billing = lazyWithRetry(() => import('./pages/Billing'));
