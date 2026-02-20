@@ -32,12 +32,11 @@ class ErrorBoundary extends React.Component {
                             Ha ocurrido un error inesperado. Hemos registrado el problema y estamos trabajando para solucionarlo.
                         </p>
 
-                        {/* Details for development only - optional to hide in prod */}
-                        {this.state.error && import.meta.env.DEV && (
-                            <div className="bg-gray-100 p-3 rounded text-left text-xs font-mono overflow-auto max-h-32 mb-6 text-red-800">
-                                {this.state.error.toString()}
-                            </div>
-                        )}
+                        <div className="bg-red-50 p-4 rounded text-left text-xs font-mono overflow-auto max-h-60 mb-6 text-red-900 border border-red-200">
+                            <strong>Error:</strong> {this.state.error?.toString()}
+                            <br />
+                            <strong>Stack:</strong> {this.state.errorInfo?.componentStack}
+                        </div>
 
                         <div className="flex justify-center gap-4">
                             <button
