@@ -21,6 +21,15 @@ export const AuthProvider = ({ children }) => {
         let mounted = true;
 
         const initAuth = async () => {
+            // Safety Timeout to prevent infinite splash screen
+            const timeoutId = setTimeout(() => {
+                if (mounted) {
+                    console.warn("⚠️ Auth Init timed out. Forcing app load.");
+                    setLoading(false);
+                    toast.error("El inicio de sesión tardó demasiado. Verifica tu conexión.");
+                }
+            }, 7000); // 7 seconds max
+
             try {
                 addDebugLog("Auth Init Started");
                 // 1. Get Initial Session
@@ -42,6 +51,7 @@ export const AuthProvider = ({ children }) => {
                 console.error("Auth Init Error:", err);
                 addDebugLog(`Auth Init Exception: ${err.message}`);
             } finally {
+                clearTimeout(timeoutId);
                 // Only stop loading if mounted
                 if (mounted) setLoading(false);
             }
