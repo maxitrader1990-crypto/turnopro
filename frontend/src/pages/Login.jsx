@@ -6,13 +6,28 @@ import background from '../assets/login-bg.jpeg';
 import InstallPWA from '../components/InstallPWA';
 
 const Login = () => {
-    const { login, loginWithGoogle } = useAuth();
+    const { login, loginWithGoogle, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
     const [loading, setLoading] = useState(false);
+
+    // Auto-redirect if already logged in
+    React.useEffect(() => {
+        if (!authLoading && user) {
+            if (user.isSuperAdmin) {
+                navigate('/superadmin/dashboard', { replace: true });
+            } else if (user.role === 'barber') {
+                navigate('/barber/dashboard', { replace: true });
+            } else if (user.business_id) {
+                navigate('/dashboard', { replace: true });
+            } else {
+                navigate('/onboarding', { replace: true });
+            }
+        }
+    }, [user, authLoading, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
