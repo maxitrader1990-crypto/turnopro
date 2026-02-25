@@ -632,18 +632,6 @@ const BookingPage = () => {
                                                 )}
                                             </div>
 
-                                            {/* Social Media Links */}
-                                            <div className="flex gap-3 mb-4 justify-center">
-                                                {employee.instagram_url && (
-                                                    <a href={employee.instagram_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-[#E1306C] transition-colors"><Instagram size={16} /></a>
-                                                )}
-                                                {employee.facebook_url && (
-                                                    <a href={employee.facebook_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-[#1877F2] transition-colors"><MessageCircle size={16} /></a> // Using MessageCircle as generic if needed or import Facebook
-                                                )}
-                                                {employee.tiktok_url && (
-                                                    <a href={employee.tiktok_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-white transition-colors"><span className="text-xs font-bold">Tk</span></a>
-                                                )}
-                                            </div>
 
                                             <div className="w-full pt-4 border-t border-white/5 flex items-center justify-center gap-2 text-sm text-gray-400 group-hover:text-white transition-colors">
                                                 <span>Seleccionar</span>
